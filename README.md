@@ -4,7 +4,7 @@
 [![targetSdkVersion](https://img.shields.io/badge/targetSdkVersion-28-yellowgreen.svg)]()
 [![](https://jitpack.io/v/arbelkilani/Clock-view.svg)](https://jitpack.io/#arbelkilani/Clock-view)
 
-![https://github.com/arbelkilani/Clock-view/wiki/clock_cover.png]
+![https://github.com/arbelkilani/Clock-view/blob/master/wiki/clock_cover.png]
 
 Full options Clock view.<br/>You are now able to create and design your own clock view with changing just attributes. <br/> Over 20 attributes are available. 
 
@@ -109,7 +109,7 @@ ClockTheme clockTheme = new ClockTheme.ClockThemeBuilder()
 clock.setTheme(clockTheme);
 ```
 
-![https://github.com/arbelkilani/Clock-view/wiki/examples.png]
+![https://github.com/arbelkilani/Clock-view/blob/master/wiki/examples.png]
 
 ## Enumeration
 
