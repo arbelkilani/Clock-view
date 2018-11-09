@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- clock -->
+    <declare-styleable name="Clock">
+
+        <attr name="clock_type" format="enum">
+            <enum name="analogical" value="0" />
+            <enum name="numeric" value="1" />
+        </attr>
+
+        <attr name="show_center" format="boolean" />
+        <attr name="center_inner_color" format="color" />
+        <attr name="center_outer_color" format="color" />
+
+        <attr name="show_border" format="boolean" />
+        <attr name="border_color" format="color" />
+        <attr name="show_hours_progress" format="boolean" />
+        <attr name="hours_progress_color" format="color" />
+        <attr name="show_minutes_progress" format="boolean" />
+        <attr name="minutes_progress_color" format="color" />
+        <attr name="minutes_progress_factor" format="float" />
+        <attr name="show_seconds_progress" format="boolean" />
+        <attr name="seconds_progress_color" format="color" />
+        <attr name="seconds_progress_factor" format="float" />
+
+        <attr name="show_seconds_needle" format="boolean" />
+        <attr name="seconds_needle_color" format="color" />
+        <attr name="hours_needle_color" format="color" />
+        <attr name="minutes_needle_color" format="color" />
+
+        <attr name="show_degree" format="boolean" />
+        <attr name="degree_color" format="color" />
+
+        <attr name="show_hours_values" format="boolean" />
+        <attr name="hours_values_color" format="color" />
+        <attr name="hours_values_font" format="reference" />
+        <attr name="clock_value_type" format="enum">
+            <enum name="none" value="-1" />
+            <enum name="roman" value="0" />
+            <enum name="arabic" value="1" />
+        </attr>
+
+        <attr name="clock_value_disposition" format="enum">
+            <enum name="regular" value="-1" />
+            <enum name="alternate" value="0" />
+        </attr>
+
+        <attr name="clock_value_step" format="enum">
+            <enum name="quarter" value="90" />
+            <enum name="full" value="30" />
+        </attr>
+
+        <attr name="show_minutes_value" format="boolean" />
+        <attr name="minutes_values_factor" format="float" />
+
+
+        <!-- background -->
+        <attr name="clock_background" format="reference" />
+
+
+        <attr name="numbers_color" format="color" />
+
+
+    </declare-styleable>
+
+</resources>

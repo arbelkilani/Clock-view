@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/theme0"
+        android:title="default"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/theme1"
+        android:title="Theme 1"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/theme2"
+        android:title="Theme 2"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/theme3"
+        android:title="Theme 3"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/theme4"
+        android:title="Theme 4"
+        app:showAsAction="never" />
+
+</menu>

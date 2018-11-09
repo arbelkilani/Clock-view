@@ -1,0 +1,85 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <com.arbelkilani.clock.Clock
+                android:id="@+id/clock_1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1" />
+
+            <com.arbelkilani.clock.Clock
+                android:id="@+id/clock_2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                app:clock_value_step="full"
+                app:show_center="true"
+                app:center_inner_color="@color/white"
+                app:clock_value_disposition="alternate"
+                app:show_hours_values="true"
+                app:show_seconds_needle="true" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <com.arbelkilani.clock.Clock
+                android:id="@+id/clock_3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1" />
+
+            <com.arbelkilani.clock.Clock
+                android:id="@+id/clock_4"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                app:border_color="@color/purple"
+                app:show_border="true" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <com.arbelkilani.clock.Clock
+                android:id="@+id/clock_5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                app:border_color="@color/orange"
+                app:hours_progress_color="@color/dark_blue"
+                app:show_border="true"
+                app:show_hours_progress="true" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
