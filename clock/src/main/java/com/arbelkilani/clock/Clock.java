@@ -43,6 +43,7 @@ import com.arbelkilani.clock.runnable.TimeCounterRunnable;
 
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class Clock extends View {
@@ -141,6 +142,8 @@ public class Clock extends View {
 
     private int mNumbersColor;
 
+    private Calendar mCalendar;
+
     public Clock(Context context) {
         super(context);
         init(context, null);
@@ -178,6 +181,7 @@ public class Clock extends View {
     private void init(Context context, AttributeSet attrs) {
         mClockRunnable = new ClockRunnable(this);
         mStartTime = SystemClock.uptimeMillis();
+        mCalendar = Calendar.getInstance();
 
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.Clock, 0, 0);
 
@@ -275,7 +279,7 @@ public class Clock extends View {
         //canvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
 
         if (mClockListener != null) {
-            mClockListener.getCalendar(Calendar.getInstance());
+            mClockListener.getCalendar(mCalendar);
         }
 
     }
@@ -478,7 +482,7 @@ public class Clock extends View {
         Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
         textPaint.setTypeface(typeface);
 
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = mCalendar;
 
         int hour = calendar.get(Calendar.HOUR);
         int minute = calendar.get(Calendar.MINUTE);
@@ -601,7 +605,7 @@ public class Clock extends View {
         float needleMaxLength = (mRadius * NEEDLE_LENGTH_FACTOR) - (degreesSpace + borderThickness + hoursTextSize);
 
         // draw seconds needle
-        float secondsDegree = Calendar.getInstance().get(Calendar.SECOND) * 6;
+        float secondsDegree = mCalendar.get(Calendar.SECOND) * 6;
 
         float startSecondsX = (float) (mCenterX + (mRadius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + secondsDegree)));
         float stopSecondsX = (float) (mCenterX + needleMaxLength * Math.cos(Math.toRadians(-REGULAR_ANGLE + secondsDegree)));
@@ -609,7 +613,7 @@ public class Clock extends View {
         float stopSecondsY = ((float) (mCenterY + needleMaxLength * Math.sin(Math.toRadians(-REGULAR_ANGLE + secondsDegree))));
 
         // draw hours needle
-        float hoursDegree = (Calendar.getInstance().get(Calendar.HOUR) + (Calendar.getInstance().get(Calendar.MINUTE) / 60f)) * 30; // 30 = 360 / 12
+        float hoursDegree = (mCalendar.get(Calendar.HOUR) + (mCalendar.get(Calendar.MINUTE) / 60f)) * 30; // 30 = 360 / 12
 
         float startHoursX = (float) (mCenterX + (mRadius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + hoursDegree)));
         float stopHoursX = (float) (mCenterX + (needleMaxLength * 0.6f) * Math.cos(Math.toRadians(-REGULAR_ANGLE + hoursDegree)));
@@ -617,7 +621,7 @@ public class Clock extends View {
         float stopHoursY = ((float) (mCenterY + (needleMaxLength * 0.6f) * Math.sin(Math.toRadians(-REGULAR_ANGLE + hoursDegree))));
 
         // draw minutes needle
-        float minutesDegree = (Calendar.getInstance().get(Calendar.MINUTE) + (Calendar.getInstance().get(Calendar.SECOND) / 60f)) * 6;
+        float minutesDegree = (mCalendar.get(Calendar.MINUTE) + (mCalendar.get(Calendar.SECOND) / 60f)) * 6;
 
         float startMinutesX = (float) (mCenterX + (mRadius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + minutesDegree)));
         float stopMinutesX = (float) (mCenterX + (needleMaxLength * 0.8f) * Math.cos(Math.toRadians(-REGULAR_ANGLE + minutesDegree)));
@@ -1185,5 +1189,14 @@ public class Clock extends View {
 
 
         invalidate();
+    }
+
+    /**
+     * Ref : https://garygregory.wordpress.com/2013/06/18/what-are-the-java-timezone-ids/
+     *
+     * @param timezoneCountry
+     */
+    public void setTimezone(String timezoneCountry) {
+        mCalendar = Calendar.getInstance(TimeZone.getTimeZone(timezoneCountry));
     }
 }
