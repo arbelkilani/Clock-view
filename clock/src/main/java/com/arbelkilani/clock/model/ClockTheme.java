@@ -1,7 +1,7 @@
 package com.arbelkilani.clock.model;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.arbelkilani.clock.enumeration.ClockDegreeStep;
 import com.arbelkilani.clock.enumeration.ClockDegreeType;

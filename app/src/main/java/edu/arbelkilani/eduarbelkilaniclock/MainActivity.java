@@ -1,13 +1,13 @@
 package edu.arbelkilani.eduarbelkilaniclock;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.arbelkilani.clock.Clock;
 import com.arbelkilani.clock.enumeration.ClockDegreeStep;
 import com.arbelkilani.clock.enumeration.ClockValueDisposition;
 import com.arbelkilani.clock.enumeration.ClockValueStep;
-import com.arbelkilani.clock.enumeration.ClockValueType;
 import com.arbelkilani.clock.model.ClockTheme;
 
 public class MainActivity extends AppCompatActivity {
