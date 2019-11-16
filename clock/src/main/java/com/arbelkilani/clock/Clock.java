@@ -250,7 +250,7 @@ public class Clock extends View {
         if (mClockListener != null) {
             mClockListener.getCalendar(mCalendar);
         }
-        
+
         switch (clockType) {
 
             case ANALOGICAL_CLOCK:
