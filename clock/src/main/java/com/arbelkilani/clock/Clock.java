@@ -182,7 +182,6 @@ public class Clock extends View {
     private void init(Context context, AttributeSet attrs) {
         mClockRunnable = new ClockRunnable(this);
         mStartTime = SystemClock.uptimeMillis();
-        mCalendar = Calendar.getInstance();
 
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.Clock, 0, 0);
 
@@ -246,6 +245,12 @@ public class Clock extends View {
         mCenterY = mWidth / 2;
         mRadius = (mWidth / 2) - ((int) (mWidth * DEFAULT_BORDER_THICKNESS) / 2);
 
+        mCalendar = Calendar.getInstance();
+
+        if (mClockListener != null) {
+            mClockListener.getCalendar(mCalendar);
+        }
+        
         switch (clockType) {
 
             case ANALOGICAL_CLOCK:
@@ -278,11 +283,6 @@ public class Clock extends View {
         paint.setStrokeWidth(mWidth * 0.005f);
         //canvas.drawRect(0, 0, mWidth, mWidth, paint);
         //canvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
-
-        if (mClockListener != null) {
-            mClockListener.getCalendar(mCalendar);
-        }
-
     }
 
     private void drawMinutesValues(Canvas canvas) {
@@ -470,9 +470,6 @@ public class Clock extends View {
             mTimeBuffer += mMillisecondsTime;
     }
 
-    /**
-     * @param canvas
-     */
     private void drawNumbers(Canvas canvas) {
 
         TextPaint textPaint = new TextPaint();
@@ -502,9 +499,6 @@ public class Clock extends View {
         layout.draw(canvas);
     }
 
-    /**
-     * @param canvas
-     */
     private void drawHoursValues(Canvas canvas) {
 
         if (!showHoursValues)
@@ -577,10 +571,6 @@ public class Clock extends View {
 
     }
 
-    /**
-     * @param canvas Draw hours, minutes needles
-     *               Draw progress that indicates hours needle disposition.
-     */
     private void drawNeedles(final Canvas canvas) {
 
         final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -648,10 +638,6 @@ public class Clock extends View {
 
     }
 
-    /**
-     * @param canvas
-     * @param hoursDegree
-     */
     private void drawProgressBorder(Canvas canvas, float hoursDegree, float minutesDegree, float secondsDegree) {
 
         float minuteProgressSpace = (mRadius - DEFAULT_BORDER_THICKNESS) * minutesProgressFactor;
@@ -688,11 +674,6 @@ public class Clock extends View {
 
     }
 
-    /**
-     * Drawing circle border.
-     *
-     * @param canvas
-     */
     private void drawBorder(Canvas canvas) {
 
         if (!showBorder)
@@ -725,9 +706,6 @@ public class Clock extends View {
 
     }
 
-    /**
-     * @param canvas
-     */
     private void drawCenter(Canvas canvas) {
 
         if (!showCenter)
@@ -753,16 +731,10 @@ public class Clock extends View {
         mClockRunnable.run();
     }
 
-    /**
-     * @param clockListener
-     */
     public void setClockListener(ClockListener clockListener) {
         mClockListener = clockListener;
     }
 
-    /**
-     * @param clockType
-     */
     public void setStyle(ClockType clockType) {
         switch (clockType) {
             case numeric:
@@ -794,9 +766,6 @@ public class Clock extends View {
     private void resetTimeCounterValues() {
     }
 
-    /**
-     *
-     */
     private void resetStopwatchValues() {
         mMillisecondsTime = 0L;
         mStartTime = SystemClock.uptimeMillis();
@@ -804,9 +773,6 @@ public class Clock extends View {
         mUpdateTime = 0L;
     }
 
-    /**
-     * @return
-     */
     public ClockType getType() {
 
         switch (clockType) {
@@ -828,9 +794,6 @@ public class Clock extends View {
         }
     }
 
-    /**
-     *
-     */
     public void runStopwatch() {
 
         Log.i(TAG, "run stopwatch");
@@ -907,10 +870,6 @@ public class Clock extends View {
     }
 
     // setters
-
-    /**
-     * @param showCenter
-     */
     public void setShowCenter(boolean showCenter) {
         this.showCenter = showCenter;
     }
@@ -1187,7 +1146,6 @@ public class Clock extends View {
             Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
-
 
         invalidate();
     }
