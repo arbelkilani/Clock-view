@@ -31,7 +31,7 @@ Add the dependency
 
 ```xml
 dependencies {
-    implementation 'com.github.arbelkilani:Clock-view:1.0'
+    implementation 'com.github.arbelkilani:Clock-view:1.1.5'
 }
 ```
 ### Maven 
@@ -51,7 +51,7 @@ Add the dependency
 <dependency>
     <groupId>com.github.arbelkilani</groupId>
     <artifactId>Clock-view</artifactId>
-    <version>1.0</version>
+    <version>1.1.5</version>
 </dependency>
 ```
 
