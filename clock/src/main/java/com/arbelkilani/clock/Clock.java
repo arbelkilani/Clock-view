@@ -13,6 +13,8 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
@@ -21,7 +23,6 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.style.RelativeSizeSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -35,12 +36,15 @@ import com.arbelkilani.clock.enumeration.ClockValueDisposition;
 import com.arbelkilani.clock.enumeration.ClockValueStep;
 import com.arbelkilani.clock.enumeration.ClockValueType;
 import com.arbelkilani.clock.enumeration.StopwatchState;
+import com.arbelkilani.clock.enumeration.TimeCounterState;
+import com.arbelkilani.clock.global.ClockViewSaveState;
 import com.arbelkilani.clock.global.Utils;
 import com.arbelkilani.clock.listener.ClockListener;
+import com.arbelkilani.clock.listener.StopwatchListener;
+import com.arbelkilani.clock.listener.TimeCounterListener;
 import com.arbelkilani.clock.model.ClockTheme;
+import com.arbelkilani.clock.model.StopwatchSavedItem;
 import com.arbelkilani.clock.runnable.ClockRunnable;
-import com.arbelkilani.clock.runnable.StopWatchRunnable;
-import com.arbelkilani.clock.runnable.TimeCounterRunnable;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -69,35 +73,34 @@ public class Clock extends View {
     private static final float DEFAULT_SECONDS_BORDER_FACTOR = 0.9f;
 
     private static final float DEFAULT_DEGREE_STROKE_WIDTH = 0.010f;
-    private static final float DEFAULT_BORDER_THICKNESS = 0.018f;
+    private static final float DEFAULT_BORDER_THICKNESS = 0.012f;
     private static final float DEFAULT_NEEDLE_STROKE_WIDTH = 0.015f;
     private static final float NEEDLE_LENGTH_FACTOR = 0.9f;
     private static final float DEFAULT_NEEDLE_START_SPACE = 0.05f;
 
-    private static final float DEFAULT_HOURS_VALUES_TEXT_SIZE = 0.09f;
+    private static final float DEFAULT_HOURS_VALUES_TEXT_SIZE = 0.08f;
 
     private static final int QUARTER_DEGREE_STEPS = 90;
 
-    public final static int AM = 0;
-
     private static final float MINUTES_TEXT_SIZE = 0.050f;
-    private static final int RIGHT_ANGLE = 90;
 
     private int mWidth, mCenterX, mCenterY, mRadius;
 
     private ClockRunnable mClockRunnable;
-    private StopWatchRunnable mStopWatchRunnable;
-    private TimeCounterRunnable mTimeCounterRunnable;
 
     private int clockType = ANALOGICAL_CLOCK;
     private ClockListener mClockListener;
 
+    // Stopwatch
     private long mStartTime, mMillisecondsTime, mUpdateTime, mTimeBuffer = 0L;
     private int mMilliseconds, mSeconds, mMinutes;
-
     private StopwatchState mStopwatchState = StopwatchState.stopped;
+    private StopwatchListener mStopwatchListener;
 
-    private long mTimeCounterValue = 1000;
+    // Time counter
+    private TimeCounterState mTimeCounterState = TimeCounterState.stopped;
+    private TimeCounterListener mTimeCounterListener;
+    private long mTimeCounterValue = 0;
     private long mInitialTimeCounter;
 
     /**
@@ -110,7 +113,7 @@ public class Clock extends View {
     private boolean showBorder;
     private int borderColor;
     private boolean showHoursProgress;
-    private int hoursProgressColor;
+    private int hoursProgressColor; //TODO change name to fit with time counter also
     private boolean showMinutesProgress;
     private int minutesProgressColor;
     private float minutesProgressFactor;
@@ -140,18 +143,19 @@ public class Clock extends View {
 
     private Drawable clockBackground;
 
-
     private int mNumbersColor;
-
     private Calendar mCalendar;
+    private Handler mHandler;
 
     public Clock(Context context) {
         super(context);
+        setSaveEnabled(true);
         init(context, null);
     }
 
     public Clock(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        setSaveEnabled(true);
         init(context, attrs);
     }
 
@@ -169,19 +173,13 @@ public class Clock extends View {
         int height = getMeasuredHeight();
         int widthWithoutPadding = width - getPaddingLeft() - getPaddingRight();
         int heightWithoutPadding = height - getPaddingTop() - getPaddingBottom();
-
-        if (widthWithoutPadding > heightWithoutPadding) {
-            size = heightWithoutPadding;
-        } else {
-            size = widthWithoutPadding;
-        }
-
+        size = widthWithoutPadding > heightWithoutPadding ? heightWithoutPadding : widthWithoutPadding;
         setMeasuredDimension(size + getPaddingLeft() + getPaddingRight(), size + getPaddingTop() + getPaddingBottom());
     }
 
     private void init(Context context, AttributeSet attrs) {
         mClockRunnable = new ClockRunnable(this);
-        mStartTime = SystemClock.uptimeMillis();
+        mHandler = new Handler();
 
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.Clock, 0, 0);
 
@@ -227,7 +225,7 @@ public class Clock extends View {
 
             this.clockBackground = typedArray.getDrawable(R.styleable.Clock_clock_background);
 
-            mNumbersColor = typedArray.getColor(R.styleable.Clock_numbers_color, Color.BLACK);
+            this.mNumbersColor = typedArray.getColor(R.styleable.Clock_numbers_color, Color.BLACK);
 
             typedArray.recycle();
         } catch (Exception ex) {
@@ -268,21 +266,13 @@ public class Clock extends View {
                 break;
 
             case STOP_WATCH:
-                //drawStopWatch(canvas);
+                drawStopWatch(canvas);
                 break;
 
             case TIME_COUNTER:
-                //drawTimeCounter(canvas);
+                drawTimeCounter(canvas);
                 break;
         }
-
-
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(Color.BLUE);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(mWidth * 0.005f);
-        //canvas.drawRect(0, 0, mWidth, mWidth, paint);
-        //canvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
     }
 
     private void drawMinutesValues(Canvas canvas) {
@@ -300,14 +290,11 @@ public class Clock extends View {
 
         int rText = (int) (mCenterX - ((1 - minutesValuesFactor - (2 * DEFAULT_BORDER_THICKNESS) - MINUTES_TEXT_SIZE) * mRadius));
 
-        for (int i = 0; i < 360; i = i + QUARTER_DEGREE_STEPS) {
+        for (int i = 0; i < FULL_ANGLE; i = i + QUARTER_DEGREE_STEPS) {
 
             int value = i / 6;
             String formatted;
             switch (clockValueType) {
-                case -1:
-                    formatted = String.format(Locale.getDefault(), "%02d", value);
-                    break;
 
                 case 1:
                     formatted = Utils.toArabic(value);
@@ -322,8 +309,8 @@ public class Clock extends View {
                     break;
             }
 
-            int textX = (int) (mCenterX + rText * Math.cos(Math.toRadians(90 - i)));
-            int textY = (int) (mCenterX - rText * Math.sin(Math.toRadians(90 - i)));
+            int textX = (int) (mCenterX + rText * Math.cos(Math.toRadians(REGULAR_ANGLE - i)));
+            int textY = (int) (mCenterX - rText * Math.sin(Math.toRadians(REGULAR_ANGLE - i)));
             textPaint.getTextBounds(formatted, 0, formatted.length(), rect);
             canvas.drawText(formatted, textX - rect.width() / formatted.length(), textY + rect.height() / formatted.length(), textPaint);
         }
@@ -345,7 +332,7 @@ public class Clock extends View {
 
         for (int i = 0; i < FULL_ANGLE; i = i + clockDegreeStep.getId()) {
 
-            if ((i % RIGHT_ANGLE) != 0 && (i % 15) != 0)
+            if ((i % REGULAR_ANGLE) != 0 && (i % 15) != 0)
                 paint.setAlpha(CUSTOM_ALPHA);
             else {
                 paint.setAlpha(FULL_ALPHA);
@@ -358,9 +345,6 @@ public class Clock extends View {
             int stopY = (int) (mCenterX - rEnd * Math.sin(Math.toRadians(i)));
 
             switch (clockDegreesType) {
-                case line:
-                    canvas.drawLine(startX, startY, stopX, stopY, paint);
-                    break;
 
                 case circle:
                     canvas.drawCircle(stopX, stopY, mWidth * DEFAULT_DEGREE_STROKE_WIDTH, paint);
@@ -374,61 +358,46 @@ public class Clock extends View {
                     canvas.drawLine(startX, startY, stopX, stopY, paint);
                     break;
             }
-
         }
     }
 
     private void drawTimeCounter(Canvas canvas) {
-        Log.i(TAG, "draw time counter");
 
         Paint paint = new Paint();
-
-        paint.setColor(DEFAULT_PRIMARY_COLOR);
+        paint.setColor(borderColor);
+        paint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(mWidth * 0.008f);
-        paint.setAlpha(CUSTOM_ALPHA);
+        paint.setStrokeWidth(mWidth * DEFAULT_BORDER_THICKNESS);
 
         canvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
 
         TextPaint textPaint = new TextPaint();
         textPaint.setTextSize(mWidth * 0.25f);
-        textPaint.setColor(Color.WHITE);
+        textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setAntiAlias(true);
+        textPaint.setColor(mNumbersColor);
 
         Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
         textPaint.setTypeface(typeface);
 
-
-        mTimeCounterValue = mTimeCounterValue - 1000;
-
-        if (mTimeCounterValue == 0) {
-            removeCallback();
-        }
-
         Paint progressArcPaint = new Paint();
-
-        progressArcPaint.setColor(DEFAULT_PRIMARY_COLOR);
+        paint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        paint.setAntiAlias(true);
+        progressArcPaint.setColor(hoursProgressColor);
         progressArcPaint.setStyle(Paint.Style.STROKE);
-        progressArcPaint.setStrokeWidth(mWidth * 0.008f);
+        progressArcPaint.setStrokeWidth(mWidth * DEFAULT_BORDER_THICKNESS);
         progressArcPaint.setStrokeCap(Paint.Cap.ROUND);
 
         RectF rectF = new RectF(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
 
-        long sweepAngle;
-        String value;
-        if (mInitialTimeCounter != 0) {
-            sweepAngle = (long) ((float) mTimeCounterValue / mInitialTimeCounter * FULL_ANGLE);
-            canvas.drawArc(rectF, -REGULAR_ANGLE, FULL_ANGLE - (FULL_ANGLE - sweepAngle), false, progressArcPaint);
+        long timeCounterSweepAngle = (long) ((float) mTimeCounterValue / mInitialTimeCounter * FULL_ANGLE);
+        canvas.drawArc(rectF, -REGULAR_ANGLE, FULL_ANGLE - (FULL_ANGLE - timeCounterSweepAngle), false, progressArcPaint);
 
-            value = String.format(Locale.getDefault(), "%02d:%02d",
-                    TimeUnit.MILLISECONDS.toMinutes(mTimeCounterValue),
-                    TimeUnit.MILLISECONDS.toSeconds(mTimeCounterValue) -
-                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(mTimeCounterValue)));
-
-
-        } else {
-            canvas.drawArc(rectF, -REGULAR_ANGLE, FULL_ANGLE, false, progressArcPaint);
-            value = "00:00";
-        }
+        String value = String.format(Locale.getDefault(), "%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(mTimeCounterValue),
+                TimeUnit.MILLISECONDS.toSeconds(mTimeCounterValue) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(mTimeCounterValue)));
 
         SpannableStringBuilder spannableString = new SpannableStringBuilder(value);
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
@@ -439,42 +408,31 @@ public class Clock extends View {
 
     private void drawStopWatch(Canvas canvas) {
 
-        Log.i(TAG, "draw stop watch");
-
         TextPaint textPaint = new TextPaint();
+        textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setAntiAlias(true);
         textPaint.setTextSize(mWidth * 0.35f);
-        textPaint.setColor(Color.WHITE);
+        textPaint.setColor(mNumbersColor);
 
         Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
         textPaint.setTypeface(typeface);
 
-        mMillisecondsTime = SystemClock.uptimeMillis() - mStartTime;
 
-        mUpdateTime = mTimeBuffer + mMillisecondsTime;
+        String stopwatchValue = String.format(Locale.getDefault(), "%02d", mMinutes) + ":" + String.format(Locale.getDefault(), "%02d", mSeconds);
 
-        mSeconds = (int) (mUpdateTime / 1000);
-        mMinutes = mSeconds / 60;
-        mSeconds = mSeconds % 60;
-
-        mMilliseconds = (int) (mUpdateTime % 1000);
-
-        String value = String.format(Locale.getDefault(), "%02d", mMinutes) + ":" + String.format(Locale.getDefault(), "%02d", mSeconds);
-        SpannableStringBuilder spannableString = new SpannableStringBuilder(value);
+        SpannableStringBuilder spannableString = new SpannableStringBuilder(stopwatchValue);
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
         canvas.translate(mCenterX - layout.getWidth() / 2, mCenterY - layout.getHeight() / 2);
 
         layout.draw(canvas);
-
-
-        if (mStopwatchState == StopwatchState.paused)
-            mTimeBuffer += mMillisecondsTime;
     }
 
     private void drawNumbers(Canvas canvas) {
 
         TextPaint textPaint = new TextPaint();
+        textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setAntiAlias(true);
         textPaint.setTextSize(mWidth * 0.3f);
-        textPaint.setColor(mNumbersColor);
         textPaint.setColor(mNumbersColor);
 
         Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
@@ -489,7 +447,7 @@ public class Clock extends View {
         String time = String.format("%s:%s%s",
                 String.format(Locale.getDefault(), "%02d", hour),
                 String.format(Locale.getDefault(), "%02d", minute),
-                amPm == AM ? "AM" : "PM");
+                amPm == Calendar.AM ? "AM" : "PM");
 
         SpannableStringBuilder spannableString = new SpannableStringBuilder(time);
         spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
@@ -504,9 +462,12 @@ public class Clock extends View {
         if (!showHoursValues)
             return;
 
+
         Rect rect = new Rect();
 
         TextPaint textPaint = new TextPaint();
+        textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setAntiAlias(true);
         textPaint.setColor(hoursValuesColor);
         textPaint.setTypeface(hoursValuesTypeFace);
         textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
@@ -523,10 +484,6 @@ public class Clock extends View {
             String formatted;
             switch (clockValueType) {
 
-                case -1:
-                    formatted = String.format(Locale.getDefault(), "%02d", value);
-                    break;
-
                 case 0:
                     formatted = Utils.toRoman(value);
                     break;
@@ -540,26 +497,17 @@ public class Clock extends View {
                     break;
             }
 
-            switch (clockValueDisposition) {
-                case -1:
+            if (clockValueDisposition == 0) {
+                if ((i % REGULAR_ANGLE) == 0) {
                     textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
                     textPaint.setAlpha(FULL_ALPHA);
-                    break;
-
-                case 0:
-                    if ((i % RIGHT_ANGLE) == 0) {
-                        textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
-                        textPaint.setAlpha(FULL_ALPHA);
-                    } else {
-                        textPaint.setTextSize(mWidth * (DEFAULT_HOURS_VALUES_TEXT_SIZE - 0.03f));
-                        textPaint.setAlpha(CUSTOM_ALPHA);
-                    }
-                    break;
-
-                default:
-                    textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
-                    textPaint.setAlpha(FULL_ALPHA);
-                    break;
+                } else {
+                    textPaint.setTextSize(mWidth * (DEFAULT_HOURS_VALUES_TEXT_SIZE - 0.03f));
+                    textPaint.setAlpha(CUSTOM_ALPHA);
+                }
+            } else {
+                textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
+                textPaint.setAlpha(FULL_ALPHA);
             }
 
 
@@ -590,7 +538,7 @@ public class Clock extends View {
             hoursTextSize = mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE;
 
         if (showDegrees)
-            degreesSpace = mWidth * (DEFAULT_BORDER_THICKNESS + 0.06f); // // TODO: 11/7/18  
+            degreesSpace = mWidth * (DEFAULT_BORDER_THICKNESS + 0.06f); // // TODO: 11/7/18
 
         //float needleMaxLength = (mRadius * NEEDLE_LENGTH_FACTOR) - 2 * (borderThickness + hoursTextSize);
         float needleMaxLength = (mRadius * NEEDLE_LENGTH_FACTOR) - (degreesSpace + borderThickness + hoursTextSize);
@@ -728,7 +676,8 @@ public class Clock extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        mClockRunnable.run();
+        if (mClockRunnable != null)
+            mClockRunnable.run();
     }
 
     public void setClockListener(ClockListener clockListener) {
@@ -752,29 +701,14 @@ public class Clock extends View {
                 break;
 
             case time_counter:
-                stopTimeCounter();
                 this.clockType = TIME_COUNTER;
                 break;
         }
 
-        resetStopwatchValues();
-        resetTimeCounterValues();
         invalidate();
-
-    }
-
-    private void resetTimeCounterValues() {
-    }
-
-    private void resetStopwatchValues() {
-        mMillisecondsTime = 0L;
-        mStartTime = SystemClock.uptimeMillis();
-        mTimeBuffer = 0L;
-        mUpdateTime = 0L;
     }
 
     public ClockType getType() {
-
         switch (clockType) {
 
             case ANALOGICAL_CLOCK:
@@ -794,32 +728,60 @@ public class Clock extends View {
         }
     }
 
-    public void runStopwatch() {
-
-        Log.i(TAG, "run stopwatch");
-
-        mStopWatchRunnable = new StopWatchRunnable(this);
-        mStartTime = SystemClock.uptimeMillis();
-        mStopWatchRunnable.run();
-        mStopwatchState = StopwatchState.running;
+    public void setStopwatchListener(StopwatchListener stopwatchListener) {
+        this.mStopwatchListener = stopwatchListener;
     }
 
+    public void runStopwatch() {
+
+        mStartTime = SystemClock.uptimeMillis();
+        mHandler.postDelayed(stopwatchRunnable, 0);
+
+        mStopwatchState = StopwatchState.running;
+        if (mStopwatchListener != null)
+            mStopwatchListener.onStopwatchStateChanged(StopwatchState.running);
+    }
+
+    Runnable stopwatchRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            mMillisecondsTime = SystemClock.uptimeMillis() - mStartTime;
+            mUpdateTime = mTimeBuffer + mMillisecondsTime;
+
+            mSeconds = (int) (mUpdateTime / 1000);
+            mMinutes = mSeconds / 60;
+            mSeconds = mSeconds % 60;
+            mMilliseconds = (int) (mUpdateTime % 1000);
+
+            mHandler.postDelayed(this, 0);
+            postInvalidate();
+        }
+    };
+
     public void pauseStopwatch() {
+        mTimeBuffer += mMillisecondsTime;
+        removeStopwatchCallback();
+        updateStopwatchState(StopwatchState.paused);
+    }
 
-        Log.i(TAG, "pause stopwatch");
+    private void updateStopwatchState(StopwatchState stopwatchState) {
+        mStopwatchState = stopwatchState;
+        if (mStopwatchListener != null)
+            mStopwatchListener.onStopwatchStateChanged(stopwatchState);
+    }
 
-        removeCallbacks(mStopWatchRunnable);
-        removeCallbacks(mClockRunnable);
-        mStopwatchState = StopwatchState.paused;
+    private void updateTimeCounterSate(TimeCounterState timeCounterState) {
+        mTimeCounterState = timeCounterState;
+        if (mTimeCounterListener != null)
+            mTimeCounterListener.onTimeCounterStateChanged(timeCounterState);
     }
 
     public void resumeStopWatch() {
-
-        Log.i(TAG, "resume stopwatch");
-
         mStartTime = SystemClock.uptimeMillis();
-        mStopWatchRunnable.run();
-        mStopwatchState = StopwatchState.running;
+
+        stopwatchRunnable.run();
+        updateStopwatchState(StopwatchState.running);
     }
 
     public StopwatchState getStopwatchState() {
@@ -827,46 +789,169 @@ public class Clock extends View {
     }
 
     public void stopStopwatch() {
+        mMillisecondsTime = 0L;
+        mStartTime = 0L;
+        mTimeBuffer = 0L;
+        mUpdateTime = 0L;
 
-        Log.i(TAG, "stop stopwatch");
+        mSeconds = 0;
+        mMinutes = 0;
+        mMilliseconds = 0;
 
-        resetStopwatchValues();
+        removeStopwatchCallback();
+        updateStopwatchState(StopwatchState.stopped);
 
-        if (mStopWatchRunnable != null) mStopWatchRunnable.run(); // re-run runnable to enable draw
-        removeCallbacks(mStopWatchRunnable);
-        removeCallbacks(mClockRunnable);
-        mStopwatchState = StopwatchState.stopped;
+        invalidate();
     }
 
-    public long getCurrentValue() {
-        return mUpdateTime;
+    private void removeStopwatchCallback() {
+        mHandler.removeCallbacks(stopwatchRunnable);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mHandler.removeCallbacks(stopwatchRunnable);
+            }
+        });
     }
 
-    public void setTimeCounterValue(long timeCounterValue) {
+    public void saveStopwatch() {
+        StopwatchSavedItem stopwatchSavedItem = new StopwatchSavedItem(Calendar.getInstance(), mSeconds, mMinutes);
+        if (mStopwatchListener != null)
+            mStopwatchListener.onStopwatchSaveValue(stopwatchSavedItem);
+    }
 
-        removeCallback();
+    public void runTimeCounter(long timeCounterValue) {
+        if (timeCounterValue == 0)
+            return;
 
         mTimeCounterValue = timeCounterValue;
-        mTimeCounterRunnable = new TimeCounterRunnable(this);
-        mTimeCounterRunnable.run();
-
         mInitialTimeCounter = timeCounterValue;
+        mHandler.postDelayed(timeCounterRunnable, 0);
 
+        updateTimeCounterSate(TimeCounterState.running);
     }
 
-    private void removeCallback() {
-        removeCallbacks(mTimeCounterRunnable);
-        removeCallbacks(mClockRunnable);
-        removeCallbacks(mStopWatchRunnable);
+    Runnable timeCounterRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            mTimeCounterValue = mTimeCounterValue - 1000;
+            mHandler.postDelayed(this, 1000);
+            postInvalidate();
+
+            if (mTimeCounterValue == 0L) {
+                stopTimeCounter();
+            }
+        }
+    };
+
+    public TimeCounterState getTimeCounterState() {
+        return mTimeCounterState;
+    }
+
+    public void resumeTimeCounter() {
+        timeCounterRunnable.run();
+        updateTimeCounterSate(TimeCounterState.running);
+    }
+
+    public void pauseTimeCounter() {
+        mHandler.removeCallbacks(timeCounterRunnable);
+        updateTimeCounterSate(TimeCounterState.paused);
     }
 
     public void stopTimeCounter() {
-        removeCallback();
+
         mInitialTimeCounter = 0L;
-        if (mTimeCounterRunnable != null) mTimeCounterRunnable.run();
-        removeCallbacks(mStopWatchRunnable);
-        removeCallbacks(mTimeCounterRunnable);
-        //// TODO: 8/10/18 time counter state
+        mTimeCounterValue = 0L;
+
+        removeTimeCounterCallback();
+
+        updateTimeCounterSate(TimeCounterState.stopped);
+        if (mTimeCounterListener != null)
+            mTimeCounterListener.onTimeCounterCompleted();
+
+        invalidate();
+
+    }
+
+    private void removeTimeCounterCallback() {
+        mHandler.removeCallbacks(timeCounterRunnable);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mHandler.removeCallbacks(timeCounterRunnable);
+            }
+        });
+    }
+
+    public void setTimeCounterListener(TimeCounterListener timeCounterListener) {
+        mTimeCounterListener = timeCounterListener;
+    }
+
+    @Nullable
+    @Override
+    protected Parcelable onSaveInstanceState() {
+
+        final Parcelable superState = super.onSaveInstanceState();
+        final ClockViewSaveState clockViewSaveState = new ClockViewSaveState(superState);
+
+        // stopwatch
+        clockViewSaveState.mSeconds = this.mSeconds;
+        clockViewSaveState.mMinutes = this.mMinutes;
+
+        clockViewSaveState.mStartTime = this.mStartTime;
+        clockViewSaveState.mTimeBuffer = this.mTimeBuffer;
+        clockViewSaveState.mMillisecondsTime = this.mMillisecondsTime;
+        clockViewSaveState.mStopwatchState = this.mStopwatchState;
+
+        if (clockViewSaveState.mStopwatchState == StopwatchState.paused) {
+            mTimeBuffer += mMillisecondsTime;
+        }
+
+        // time counter
+        clockViewSaveState.mTimeCounterValue = this.mTimeCounterValue;
+        clockViewSaveState.mInitialTimeCounter = this.mInitialTimeCounter;
+        clockViewSaveState.mTimeCounterAt = SystemClock.uptimeMillis();
+        clockViewSaveState.mTimeCounterState = this.mTimeCounterState;
+
+        return clockViewSaveState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+
+        final ClockViewSaveState clockViewSaveState = (ClockViewSaveState) state;
+        super.onRestoreInstanceState(clockViewSaveState.getSuperState());
+
+        // Stopwatch
+        this.mSeconds = clockViewSaveState.mSeconds;
+        this.mMinutes = clockViewSaveState.mMinutes;
+
+        this.mStartTime = clockViewSaveState.mStartTime;
+        this.mTimeBuffer = clockViewSaveState.mTimeBuffer;
+        this.mMillisecondsTime = clockViewSaveState.mMillisecondsTime;
+        updateStopwatchState(clockViewSaveState.mStopwatchState);
+
+        if (this.mStopwatchState == StopwatchState.running) {
+            removeStopwatchCallback();
+            mHandler.postDelayed(stopwatchRunnable, 0);
+        }
+
+        // Time counter
+        this.mInitialTimeCounter = clockViewSaveState.mInitialTimeCounter;
+        this.mTimeCounterState = clockViewSaveState.mTimeCounterState;
+        updateTimeCounterSate(clockViewSaveState.mTimeCounterState);
+        if (mTimeCounterState == TimeCounterState.running) {
+            this.mTimeCounterValue = clockViewSaveState.mTimeCounterValue - (SystemClock.uptimeMillis() - clockViewSaveState.mTimeCounterAt);
+            removeTimeCounterCallback();
+            mHandler.postDelayed(timeCounterRunnable, 0);
+        }
+
+        if (mTimeCounterState == TimeCounterState.paused) {
+            this.mTimeCounterValue = clockViewSaveState.mTimeCounterValue;
+        }
+
+        invalidate();
     }
 
     // setters
@@ -878,7 +963,6 @@ public class Clock extends View {
         try {
             this.centerInnerColor = ContextCompat.getColor(getContext(), centerInnerColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -887,7 +971,6 @@ public class Clock extends View {
         try {
             this.centerOuterColor = ContextCompat.getColor(getContext(), centerOuterColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -908,7 +991,6 @@ public class Clock extends View {
         try {
             this.borderColor = ContextCompat.getColor(getContext(), borderColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -921,7 +1003,6 @@ public class Clock extends View {
         try {
             this.hoursProgressColor = ContextCompat.getColor(getContext(), hoursProgressColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -934,7 +1015,6 @@ public class Clock extends View {
         try {
             this.minutesProgressColor = ContextCompat.getColor(getContext(), minutesProgressColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -955,7 +1035,6 @@ public class Clock extends View {
         try {
             this.secondsProgressColor = ContextCompat.getColor(getContext(), secondsProgressColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -968,7 +1047,6 @@ public class Clock extends View {
         try {
             this.secondsNeedleColor = ContextCompat.getColor(getContext(), secondsNeedleColor);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -1033,7 +1111,6 @@ public class Clock extends View {
         try {
             this.clockBackground = ContextCompat.getDrawable(getContext(), clockBackground);
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -1073,77 +1150,66 @@ public class Clock extends View {
         try {
             this.clockBackground = ContextCompat.getDrawable(getContext(), clockTheme.getClockBackground());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.borderColor = ContextCompat.getColor(getContext(), clockTheme.getBorderColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.hoursProgressColor = ContextCompat.getColor(getContext(), clockTheme.getHoursProgressColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.minutesProgressColor = ContextCompat.getColor(getContext(), clockTheme.getMinutesProgressColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.secondsProgressColor = ContextCompat.getColor(getContext(), clockTheme.getSecondsProgressColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.secondsNeedleColor = ContextCompat.getColor(getContext(), clockTheme.getSecondsNeedleColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.hoursNeedleColor = ContextCompat.getColor(getContext(), clockTheme.getHoursNeedleColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.minutesNeedleColor = ContextCompat.getColor(getContext(), clockTheme.getMinutesNeedleColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.degreesColor = ContextCompat.getColor(getContext(), clockTheme.getDegreesColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             this.hoursValuesColor = ContextCompat.getColor(getContext(), clockTheme.getHoursValuesColor());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 
         try {
             hoursValuesTypeFace = ResourcesCompat.getFont(getContext(), clockTheme.getHoursValuesFont());
         } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
             e.printStackTrace();
         }
 

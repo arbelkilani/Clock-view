@@ -7,6 +7,8 @@
         <attr name="clock_type" format="enum">
             <enum name="analogical" value="0" />
             <enum name="numeric" value="1" />
+            <enum name="stopwatch" value="2" />
+            <enum name="time_counter" value="3"/>
         </attr>
 
         <attr name="show_center" format="boolean" />
@@ -57,8 +59,6 @@
 
         <!-- background -->
         <attr name="clock_background" format="reference" />
-
-
         <attr name="numbers_color" format="color" />
 
 

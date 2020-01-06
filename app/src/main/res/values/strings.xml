@@ -1,3 +1,44 @@
 <resources>
-    <string name="app_name">edu.arbelkilani.clock</string>
+    <string name="app_name">Clock View</string>
+
+    <string name="clock">Clock</string>
+    <string name="stopwatch">Stopwatch</string>
+    <string name="time_counter">Time Counter</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="stop">Stop</string>
+    <string name="save">Save</string>
+
+    <string-array name="hours">
+        <item>00</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+    </string-array>
+
+    <string-array name="minutes">
+        <item>00</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+    </string-array>
+
+    <string-array name="seconds">
+        <item>00</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+    </string-array>
+
 </resources>

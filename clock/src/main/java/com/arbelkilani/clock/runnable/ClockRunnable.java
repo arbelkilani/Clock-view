@@ -16,6 +16,4 @@ public class ClockRunnable implements Runnable {
         mView.invalidate();
         mView.postDelayed(this, SECOND);
     }
-
-
 }
