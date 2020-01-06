@@ -187,12 +187,16 @@ public class Clock extends View {
 
             this.clockType = typedArray.getInt(R.styleable.Clock_clock_type, ANALOGICAL_CLOCK);
 
+            // center
             this.showCenter = typedArray.getBoolean(R.styleable.Clock_show_center, false);
             this.centerInnerColor = typedArray.getColor(R.styleable.Clock_center_inner_color, Color.LTGRAY);
             this.centerOuterColor = typedArray.getColor(R.styleable.Clock_center_outer_color, DEFAULT_PRIMARY_COLOR);
 
+            // border
             this.showBorder = typedArray.getBoolean(R.styleable.Clock_show_border, false);
             this.borderColor = typedArray.getColor(R.styleable.Clock_border_color, DEFAULT_PRIMARY_COLOR);
+
+            // progress
             this.showHoursProgress = typedArray.getBoolean(R.styleable.Clock_show_hours_progress, false);
             this.hoursProgressColor = typedArray.getColor(R.styleable.Clock_hours_progress_color, DEFAULT_SECONDARY_COLOR);
             this.showMinutesProgress = typedArray.getBoolean(R.styleable.Clock_show_minutes_progress, false);
@@ -202,16 +206,19 @@ public class Clock extends View {
             this.secondsProgressFactor = typedArray.getFloat(R.styleable.Clock_seconds_progress_factor, DEFAULT_SECONDS_BORDER_FACTOR);
             this.secondsProgressColor = typedArray.getColor(R.styleable.Clock_seconds_progress_color, DEFAULT_PRIMARY_COLOR);
 
+            // needle
             this.showSecondsNeedle = typedArray.getBoolean(R.styleable.Clock_show_seconds_needle, false);
             this.secondsNeedleColor = typedArray.getColor(R.styleable.Clock_seconds_needle_color, DEFAULT_SECONDARY_COLOR);
             this.hoursNeedleColor = typedArray.getColor(R.styleable.Clock_hours_needle_color, DEFAULT_PRIMARY_COLOR);
             this.minutesNeedleColor = typedArray.getColor(R.styleable.Clock_minutes_needle_color, DEFAULT_PRIMARY_COLOR);
 
+            // degrees
             this.showDegrees = typedArray.getBoolean(R.styleable.Clock_show_degree, false);
             this.degreesColor = typedArray.getColor(R.styleable.Clock_degree_color, DEFAULT_PRIMARY_COLOR);
-            this.clockDegreesType = ClockDegreeType.line;
-            this.clockDegreeStep = ClockDegreeStep.full;
+            this.clockDegreesType = ClockDegreeType.fromId(typedArray.getInt(R.styleable.Clock_degree_type, ClockDegreeType.line.getId()));
+            this.clockDegreeStep = ClockDegreeStep.fromId(typedArray.getInt(R.styleable.Clock_degree_step, ClockDegreeStep.full.getId()));
 
+            // values
             this.showHoursValues = typedArray.getBoolean(R.styleable.Clock_show_hours_values, false);
             this.hoursValuesColor = typedArray.getColor(R.styleable.Clock_hours_values_color, DEFAULT_PRIMARY_COLOR);
             int hoursTypeFace = typedArray.getResourceId(R.styleable.Clock_hours_values_font, R.font.proxima_nova_thin);
@@ -219,7 +226,6 @@ public class Clock extends View {
             this.clockValueType = typedArray.getInt(R.styleable.Clock_clock_value_type, ClockValueType.none.getId());
             this.clockValueDisposition = typedArray.getInt(R.styleable.Clock_clock_value_disposition, ClockValueDisposition.regular.getId());
             this.clockValueStep = typedArray.getInt(R.styleable.Clock_clock_value_step, ClockValueStep.full.getId());
-
             this.showMinutesValues = typedArray.getBoolean(R.styleable.Clock_show_minutes_value, false);
             this.minutesValuesFactor = typedArray.getFloat(R.styleable.Clock_minutes_values_factor, DEFAULT_MINUTES_BORDER_FACTOR);
 

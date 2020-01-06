@@ -13,4 +13,11 @@ public enum ClockDegreeStep {
     public int getId() {
         return id;
     }
+
+    public static ClockDegreeStep fromId(int id) {
+        for (ClockDegreeStep clockDegreeStep : values()) {
+            if (clockDegreeStep.id == id) return clockDegreeStep;
+        }
+        throw new IllegalArgumentException();
+    }
 }
