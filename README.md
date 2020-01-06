@@ -5,19 +5,24 @@
 [![targetSdkVersion](https://img.shields.io/badge/targetSdkVersion-28-yellowgreen.svg)]()
 [![](https://jitpack.io/v/arbelkilani/Clock-view.svg)](https://jitpack.io/#arbelkilani/Clock-view)
 
-![cover](https://github.com/arbelkilani/Clock-view/blob/master/wiki/clock_cover.png)
+![cover](https://raw.githubusercontent.com/arbelkilani/Clock-view/master/wiki/clock_cover.png)
 
-Full options Clock view.<br/>You are now able to create and design your own clock view with changing just attributes. <br/> Over 20 attributes are available. 
+Full options Clock view.<br/><br/>You are now able to create and design your own clock view with changing just attributes. <br/> Over 20 attributes are available. <br/><br/>
+All time related features are available : <br/>
+ - Analogical / Numeric Clock view <br/>
+ - Stopwatch <br/>
+ - Time counter
+
 
 ## Credits
-Developed by : [<b>Belkilani Ahmed Radhouane</b>](http://arbelkilani.tn/)
+Developed by : [<b>Belkilani Ahmed Radhouane</b>](https://www.linkedin.com/in/arbelkilani/)
 <br/>
 Inspired and based on [<b>Souissi Dorsaf</b>](https://www.behance.net/souissidor8b6c) design.
 
 ## Setup
 
 ### Gradle 
-Add it in your root build.gradle at the end of repositories:
+Add it in your root <b>build.gradle</b> project level file at the end of repositories section :
 
 ```xml
 allprojects {
@@ -27,134 +32,17 @@ allprojects {
     }
 }
 ```
-Add the dependency
+Add the dependency in <b>build.gradle</b> app level file
 
 ```xml
 dependencies {
     implementation 'com.github.arbelkilani:Clock-view:1.1.5'
 }
 ```
-### Maven 
-
-```xml
-<repositories>
-	<repository>
-	    <id>jitpack.io</id>
-	    <url>https://jitpack.io</url>
-	</repository>
-</repositories>
-```
-
-Add the dependency
-
-```xml
-<dependency>
-    <groupId>com.github.arbelkilani</groupId>
-    <artifactId>Clock-view</artifactId>
-    <version>1.1.5</version>
-</dependency>
-```
 
 ## How does this work ?
-3 ways enable you to customise your own clock view design. 
+Check the [<b>wiki</b>](https://github.com/arbelkilani/Clock-view/wiki) section for further details.
 
-* Example 1 : Using only XML, attributes : 
-
-```xml
-<com.arbelkilani.clock.Clock
-    android:id="@+id/clock_2"
-    android:layout_width="0dp"
-    android:layout_height="match_parent"
-    android:layout_margin="5dp"
-    android:layout_weight="1"
-    app:clock_value_step="full"
-    app:show_center="true"
-    app:center_inner_color="@color/white"
-    app:clock_value_disposition="alternate"
-    app:show_hours_values="true"
-    app:show_seconds_needle="true" />
-```
-
-* Example 2 : Using simple setters : 
-
-```java
-Clock clock = findViewById(R.id.clock);
-
-clock.setShowBorder(true);
-clock.setBorderColor(R.color.gray);
-clock.setShowHoursProgress(true);
-clock.setHoursProgressColor(R.color.black);
-clock.setShowHoursValues(true);
-clock.setClockValueStep(ClockValueStep.quarter);
-clock.setShowCenter(true);
-clock.setCenterOuterColor(R.color.black);
-clock.setCenterInnerColor(R.color.gray);
-...
-
-```
-
-* Example 3 : Using <b>ClockTheme</b> builder : 
-
-```java
-Clock clock = findViewById(R.id.clock);
-
-ClockTheme clockTheme = new ClockTheme.ClockThemeBuilder()
-        .showBorder(true, R.color.gray)
-        .showHoursProgress(true, R.color.black)
-        .showMinutesProgress(true, R.color.black, 0.35f)
-        .showMinutesValues(true, 0.37f)
-        ...
-        .showHoursValues(true, ClockValueStep.quarter)
-        .build();
-        
-clock.setTheme(clockTheme);
-```
-
-![results](https://github.com/arbelkilani/Clock-view/blob/master/wiki/examples.png)
-
-## Enumeration
-
-* <b> ClockDegreeStep </b> : quarter, full, twelve
-* <b> ClockDegreeType </b> : line, circle, square
-* <b> ClockValueDisposition </b> : regular, alternate
-* <b> ClockValueStep </b> : quarter, full
-* <b> ClockValueType </b> : none, roman, arabic
-
-
-## Available attributes
-
-Attribute 	   | Type          | Description    | Default value
------------- | ------------- | ------------- | ------------- | 
-clockBackground | Reference | set a custom drawable background for the clock.<br/>Example : clock.setClockBackground(R.drawable.background_7); | null
-showCenter  | boolean | show clock center or not<br/> | false 
-centerInnerColor | Color | clock center innner color <br/> example = setCenterInnerColor(R.color.black); | Color.LTGRAY
-centerOuterColor | Color | clock center border color <br/> example = setCenterOuterColor(R.color.black); | Color.BLACK
-showBorder | boolean | enable or disable showing border for analogical type. | false
-borderColor | Color | set color for the clock border once showBorder set to true. | Color.BLACK
-showHoursProgress | boolean | enable showing hours circular progress | false
-hoursProgressColor | Color | set color for the circular progress that show hours value. | Color.BLACK
-showMinutesProgress | boolean | enable showing minutes circular progress. | false
-minutesProgressColor | Color | set color for the circular progress that show minutes value. | Color.BLACK
-minutesProgressFactor | float | set factor for the miutes progress position, should be between <b>0.2f</b> and <b>0.5f</b> | 0.4f
-showSecondsProgress | boolean | enable showing seconds circular progress. | false
-secondsProgressColor | Color | set color for the circular progress that show seconds value. | Color.BLACK
-secondsProgressFactor | float | set factor for the seconds progress position, should be between <b>0.2f</b> and <b>0.9f</b> | 0.7f
-showSecondsNeedle | boolean | enable showing needle for the seconds value.<br/> | false
-secondsNeedleColor | Color | set color for the seconds needle once showSecondsNeedle is set to true. | Color.BLACK
-hoursNeedleColor | Color | set color for the hours needle. | Color.BLACK
-minutesNeedleColor | Color | set color for the minutes needle. | Color.BLACK
-showDegrees | boolean | enable showing or hiding degrees. | false
-degreesColor | Color | set degrees color. | Color.BLACK
-clockDegreeType | ClockDegreeType | degrees could be on line, circle or square shapes. | ClockDegreeType.line
-clockDegreeStep | ClockDegreeStep | degrees could be set in 3 types : <b>quarter</b>, <b>full</b> or <b>twelve</b>. | ClockDegreeStep.full
-showHoursValues | boolean | show clock hours values | false
-hoursValuesColor | Color | set color for hours values. | Color.BLACK
-hoursValuesFont | Reference | set font for hours values.<br/> Example : clock.setHoursValuesTypeFace(R.font.hunters); | R.font.proxima_nova_thin
-clockValueType | ClockValueType | set values type, it could be <b>none</b>, <b>roman</b>, or <b>arabic</b> | ClockValueType.none
-clockValueDisposition | ClockValueDisposition | change methods of hours values disposition, it could be either <b>regular</b> or <b>alternate</b>. | ClockValueDisposition.regular
-clockValueStep | ClockValueStep | user could enable showing all hours values or just four of them. Values could be <b>quarter</b> or <b>full</b>. | ClockValueStep.full
-showMinutesValues | boolean | enable or not showning minutes values. | false
-minutesValuesFactor | float | set factor for minutes values disposition. Should be between <b>0.2f</b> and <b>0.9f</b> | 0.4f
 
 ## License
 
