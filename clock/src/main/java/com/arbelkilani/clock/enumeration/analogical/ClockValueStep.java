@@ -1,4 +1,4 @@
-package com.arbelkilani.clock.enumeration;
+package com.arbelkilani.clock.enumeration.analogical;
 
 public enum ClockValueStep {
 

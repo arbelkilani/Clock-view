@@ -68,7 +68,12 @@
 
         <!-- background -->
         <attr name="clock_background" format="reference" />
+
         <attr name="numbers_color" format="color" />
+        <attr name="numeric_format" format="enum">
+            <enum name="hour_12" value="0"/>
+            <enum name="hour_24" value="1"/>
+        </attr>
 
 
     </declare-styleable>

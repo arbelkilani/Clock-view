@@ -1,6 +1,4 @@
-package com.arbelkilani.clock.enumeration;
-
-import com.arbelkilani.clock.Clock;
+package com.arbelkilani.clock.enumeration.analogical;
 
 public enum ClockDegreeType {
 

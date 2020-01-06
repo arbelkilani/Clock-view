@@ -29,20 +29,22 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.arbelkilani.clock.enumeration.ClockDegreeStep;
-import com.arbelkilani.clock.enumeration.ClockDegreeType;
+import com.arbelkilani.clock.enumeration.analogical.ClockDegreeStep;
+import com.arbelkilani.clock.enumeration.analogical.ClockDegreeType;
 import com.arbelkilani.clock.enumeration.ClockType;
-import com.arbelkilani.clock.enumeration.ClockValueDisposition;
-import com.arbelkilani.clock.enumeration.ClockValueStep;
-import com.arbelkilani.clock.enumeration.ClockValueType;
+import com.arbelkilani.clock.enumeration.analogical.ClockValueDisposition;
+import com.arbelkilani.clock.enumeration.analogical.ClockValueStep;
+import com.arbelkilani.clock.enumeration.analogical.ClockValueType;
 import com.arbelkilani.clock.enumeration.StopwatchState;
 import com.arbelkilani.clock.enumeration.TimeCounterState;
+import com.arbelkilani.clock.enumeration.numeric.ClockNumericFormat;
 import com.arbelkilani.clock.global.ClockViewSaveState;
 import com.arbelkilani.clock.global.Utils;
 import com.arbelkilani.clock.listener.ClockListener;
 import com.arbelkilani.clock.listener.StopwatchListener;
 import com.arbelkilani.clock.listener.TimeCounterListener;
 import com.arbelkilani.clock.model.ClockTheme;
+import com.arbelkilani.clock.model.NumericTheme;
 import com.arbelkilani.clock.model.StopwatchSavedItem;
 import com.arbelkilani.clock.runnable.ClockRunnable;
 
@@ -143,6 +145,8 @@ public class Clock extends View {
 
     private Drawable clockBackground;
 
+    private ClockNumericFormat clockNumericFormat;
+
     private int mNumbersColor;
     private Calendar mCalendar;
     private Handler mHandler;
@@ -229,11 +233,16 @@ public class Clock extends View {
             this.showMinutesValues = typedArray.getBoolean(R.styleable.Clock_show_minutes_value, false);
             this.minutesValuesFactor = typedArray.getFloat(R.styleable.Clock_minutes_values_factor, DEFAULT_MINUTES_BORDER_FACTOR);
 
+            // background
             this.clockBackground = typedArray.getDrawable(R.styleable.Clock_clock_background);
 
+            // numbers colors for numeric clock, stopwatch and time counter
             this.mNumbersColor = typedArray.getColor(R.styleable.Clock_numbers_color, Color.BLACK);
 
+            this.clockNumericFormat = ClockNumericFormat.fromId(typedArray.getInt(R.styleable.Clock_numeric_format, ClockNumericFormat.hour_12.getId()));
+
             typedArray.recycle();
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -446,17 +455,21 @@ public class Clock extends View {
 
         Calendar calendar = mCalendar;
 
-        int hour = calendar.get(Calendar.HOUR);
-        int minute = calendar.get(Calendar.MINUTE);
-        int amPm = calendar.get(Calendar.AM_PM);
+        SpannableStringBuilder spannableString;
 
-        String time = String.format("%s:%s%s",
-                String.format(Locale.getDefault(), "%02d", hour),
-                String.format(Locale.getDefault(), "%02d", minute),
-                amPm == Calendar.AM ? "AM" : "PM");
+        if (this.clockNumericFormat == ClockNumericFormat.hour_12) {
+            int amPm = calendar.get(Calendar.AM_PM);
+            spannableString = new SpannableStringBuilder(String.format("%s:%s%s",
+                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR)),
+                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.MINUTE)),
+                    amPm == Calendar.AM ? "AM" : "PM"));
+            spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
 
-        SpannableStringBuilder spannableString = new SpannableStringBuilder(time);
-        spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+        } else {
+            spannableString = new SpannableStringBuilder(String.format("%s:%s",
+                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR_OF_DAY)),
+                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.MINUTE))));
+        }
 
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
         canvas.translate(mCenterX - layout.getWidth() / 2, mCenterY - layout.getHeight() / 2);
@@ -1220,6 +1233,27 @@ public class Clock extends View {
         }
 
         invalidate();
+    }
+
+    public void setNumericTheme(NumericTheme numericTheme) {
+        this.clockNumericFormat = numericTheme.getClockNumericFormat();
+        try {
+            this.mNumbersColor = ContextCompat.getColor(getContext(), numericTheme.getNumericNumbersColor());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setNumbersColor(int numbersColor) {
+        try {
+            this.mNumbersColor = ContextCompat.getColor(getContext(), numbersColor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setClockNumericFormat(ClockNumericFormat clockNumericFormat) {
+        this.clockNumericFormat = clockNumericFormat;
     }
 
     /**

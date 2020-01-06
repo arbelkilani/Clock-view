@@ -3,11 +3,11 @@ package com.arbelkilani.clock.model;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.arbelkilani.clock.enumeration.ClockDegreeStep;
-import com.arbelkilani.clock.enumeration.ClockDegreeType;
-import com.arbelkilani.clock.enumeration.ClockValueDisposition;
-import com.arbelkilani.clock.enumeration.ClockValueStep;
-import com.arbelkilani.clock.enumeration.ClockValueType;
+import com.arbelkilani.clock.enumeration.analogical.ClockDegreeStep;
+import com.arbelkilani.clock.enumeration.analogical.ClockDegreeType;
+import com.arbelkilani.clock.enumeration.analogical.ClockValueDisposition;
+import com.arbelkilani.clock.enumeration.analogical.ClockValueStep;
+import com.arbelkilani.clock.enumeration.analogical.ClockValueType;
 
 public class ClockTheme {
 

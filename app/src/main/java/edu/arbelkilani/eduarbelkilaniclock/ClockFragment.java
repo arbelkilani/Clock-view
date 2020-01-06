@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 
 import com.arbelkilani.clock.Clock;
 import com.arbelkilani.clock.enumeration.ClockType;
+import com.arbelkilani.clock.enumeration.numeric.ClockNumericFormat;
+import com.arbelkilani.clock.model.ClockTheme;
+import com.arbelkilani.clock.model.NumericTheme;
 
 
 /**
@@ -28,6 +31,18 @@ public class ClockFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_clock, container, false);
+
+        Clock clock = view.findViewById(R.id.clock);
+        clock.setStyle(ClockType.numeric);
+        //clock.setNumbersColor(R.color.colorPrimaryDark);
+
+        NumericTheme numericTheme = new NumericTheme.NumericThemeBuilder()
+                .format(ClockNumericFormat.hour_12)
+                .setNumbersColor(R.color.orange)
+                .build();
+        //clock.setNumericTheme(numericTheme);
+
+
         return view;
     }
 }
