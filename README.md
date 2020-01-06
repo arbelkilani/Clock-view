@@ -8,41 +8,13 @@
 ![cover](https://raw.githubusercontent.com/arbelkilani/Clock-view/master/wiki/clock_cover.png)
 
 Full options Clock view.<br/><br/>You are now able to create and design your own clock view with changing just attributes. <br/> Over 20 attributes are available. <br/><br/>
-All time related features are available : <br/>
- - Analogical / Numeric Clock view <br/>
- - Stopwatch <br/>
- - Time counter
 
+For all details check [<b>wiki</b>](https://github.com/arbelkilani/Clock-view/wiki) section
 
 ## Credits
 Developed by : [<b>Belkilani Ahmed Radhouane</b>](https://www.linkedin.com/in/arbelkilani/)
 <br/>
 Inspired and based on [<b>Souissi Dorsaf</b>](https://www.behance.net/souissidor8b6c) design.
-
-## Setup
-
-### Gradle 
-Add it in your root <b>build.gradle</b> project level file at the end of repositories section :
-
-```xml
-allprojects {
-    repositories {
-        ...
-        maven { url 'https://jitpack.io' }
-    }
-}
-```
-Add the dependency in <b>build.gradle</b> app level file
-
-```xml
-dependencies {
-    implementation 'com.github.arbelkilani:Clock-view:1.1.5'
-}
-```
-
-## How does this work ?
-Check the [<b>wiki</b>](https://github.com/arbelkilani/Clock-view/wiki) section for further details.
-
 
 ## License
 
