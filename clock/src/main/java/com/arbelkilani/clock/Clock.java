@@ -145,9 +145,11 @@ public class Clock extends View {
 
     private Drawable clockBackground;
 
-    private ClockNumericFormat clockNumericFormat;
-
     private int mNumbersColor;
+    private ClockNumericFormat clockNumericFormat;
+    private boolean clockNumericShowSeconds;
+
+
     private Calendar mCalendar;
     private Handler mHandler;
 
@@ -240,6 +242,7 @@ public class Clock extends View {
             this.mNumbersColor = typedArray.getColor(R.styleable.Clock_numbers_color, Color.BLACK);
 
             this.clockNumericFormat = ClockNumericFormat.fromId(typedArray.getInt(R.styleable.Clock_numeric_format, ClockNumericFormat.hour_12.getId()));
+            this.clockNumericShowSeconds = typedArray.getBoolean(R.styleable.Clock_numeric_show_seconds, false);
 
             typedArray.recycle();
 
@@ -277,7 +280,7 @@ public class Clock extends View {
                 break;
 
             case NUMERIC_CLOCK:
-                drawNumbers(canvas);
+                drawNumericType(canvas);
                 break;
 
             case STOP_WATCH:
@@ -442,12 +445,12 @@ public class Clock extends View {
         layout.draw(canvas);
     }
 
-    private void drawNumbers(Canvas canvas) {
+    private void drawNumericType(Canvas canvas) {
 
         TextPaint textPaint = new TextPaint();
         textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         textPaint.setAntiAlias(true);
-        textPaint.setTextSize(mWidth * 0.3f);
+        textPaint.setTextSize(mWidth * 0.2f);
         textPaint.setColor(mNumbersColor);
 
         Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
@@ -455,20 +458,40 @@ public class Clock extends View {
 
         Calendar calendar = mCalendar;
 
-        SpannableStringBuilder spannableString;
+        SpannableStringBuilder spannableString = new SpannableStringBuilder();
 
-        if (this.clockNumericFormat == ClockNumericFormat.hour_12) {
-            int amPm = calendar.get(Calendar.AM_PM);
-            spannableString = new SpannableStringBuilder(String.format("%s:%s%s",
-                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR)),
-                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.MINUTE)),
-                    amPm == Calendar.AM ? "AM" : "PM"));
-            spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+        int amPm = calendar.get(Calendar.AM_PM);
+        String minute = String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.MINUTE));
+        String second = String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.SECOND));
 
+        if (this.clockNumericShowSeconds) {
+            if (this.clockNumericFormat == ClockNumericFormat.hour_12) {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR)));
+                spannableString.append(":");
+                spannableString.append(minute);
+                spannableString.append(".");
+                spannableString.append(second);
+                spannableString.append(amPm == Calendar.AM ? "AM" : "PM");
+                spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+            } else {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR_OF_DAY)));
+                spannableString.append(":");
+                spannableString.append(minute);
+                spannableString.append(".");
+                spannableString.append(second);
+            }
         } else {
-            spannableString = new SpannableStringBuilder(String.format("%s:%s",
-                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR_OF_DAY)),
-                    String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.MINUTE))));
+            if (this.clockNumericFormat == ClockNumericFormat.hour_12) {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR)));
+                spannableString.append(":");
+                spannableString.append(minute);
+                spannableString.append(amPm == Calendar.AM ? "AM" : "PM");
+                spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+            } else {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR_OF_DAY)));
+                spannableString.append(":");
+                spannableString.append(minute);
+            }
         }
 
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
@@ -1237,6 +1260,7 @@ public class Clock extends View {
 
     public void setNumericTheme(NumericTheme numericTheme) {
         this.clockNumericFormat = numericTheme.getClockNumericFormat();
+        this.clockNumericShowSeconds = numericTheme.isNumericShowSeconds();
         try {
             this.mNumbersColor = ContextCompat.getColor(getContext(), numericTheme.getNumericNumbersColor());
         } catch (Exception e) {
@@ -1254,6 +1278,10 @@ public class Clock extends View {
 
     public void setClockNumericFormat(ClockNumericFormat clockNumericFormat) {
         this.clockNumericFormat = clockNumericFormat;
+    }
+
+    public void setClockNumericShowSeconds(boolean showSeconds) {
+        this.clockNumericShowSeconds = showSeconds;
     }
 
     /**

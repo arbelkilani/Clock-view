@@ -34,11 +34,14 @@ public class ClockFragment extends Fragment {
 
         Clock clock = view.findViewById(R.id.clock);
         clock.setStyle(ClockType.numeric);
+        //clock.setClockNumericFormat(ClockNumericFormat.hour_24);
+        //clock.setClockNumericShowSeconds(false);
         //clock.setNumbersColor(R.color.colorPrimaryDark);
 
         NumericTheme numericTheme = new NumericTheme.NumericThemeBuilder()
                 .format(ClockNumericFormat.hour_12)
                 .setNumbersColor(R.color.orange)
+                .showSeconds(true)
                 .build();
         //clock.setNumericTheme(numericTheme);
 
