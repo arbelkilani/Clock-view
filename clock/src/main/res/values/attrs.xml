@@ -52,24 +52,19 @@
         <attr name="hours_values_font" format="reference" />
         <attr name="show_minutes_value" format="boolean" />
         <attr name="minutes_values_factor" format="float" />
-
         <attr name="clock_value_type" format="enum">
             <enum name="none" value="-1" />
             <enum name="roman" value="0" />
             <enum name="arabic" value="1" />
         </attr>
-
         <attr name="clock_value_disposition" format="enum">
             <enum name="regular" value="-1" />
             <enum name="alternate" value="0" />
         </attr>
-
         <attr name="clock_value_step" format="enum">
             <enum name="quarter" value="90" />
             <enum name="full" value="30" />
         </attr>
-
-
 
         <!-- background -->
         <attr name="clock_background" format="reference" />
