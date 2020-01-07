@@ -30,22 +30,7 @@ public class ClockFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_clock, container, false);
 
-        Clock clock = view.findViewById(R.id.clock);
-        clock.setStyle(ClockType.numeric);
-        //clock.setClockNumericFormat(ClockNumericFormat.hour_24);
-        //clock.setClockNumericShowSeconds(false);
-        //clock.setNumbersColor(R.color.colorPrimaryDark);
-
-        NumericTheme numericTheme = new NumericTheme.NumericThemeBuilder()
-                .format(ClockNumericFormat.hour_12)
-                .setNumbersColor(R.color.orange)
-                .showSeconds(true)
-                .build();
-        //clock.setNumericTheme(numericTheme);
-
-
-        return view;
+        return inflater.inflate(R.layout.fragment_clock, container, false);
     }
 }

@@ -75,6 +75,7 @@
             <enum name="hour_24" value="1"/>
         </attr>
         <attr name="numeric_show_seconds" format="boolean"/>
+        <attr name="stopwatch_font" format="reference"/>
 
     </declare-styleable>
 

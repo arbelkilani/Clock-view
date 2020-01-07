@@ -46,6 +46,7 @@ import com.arbelkilani.clock.listener.TimeCounterListener;
 import com.arbelkilani.clock.model.ClockTheme;
 import com.arbelkilani.clock.model.NumericTheme;
 import com.arbelkilani.clock.model.StopwatchSavedItem;
+import com.arbelkilani.clock.model.StopwatchTheme;
 import com.arbelkilani.clock.runnable.ClockRunnable;
 
 import java.util.Calendar;
@@ -149,6 +150,8 @@ public class Clock extends View {
     private ClockNumericFormat clockNumericFormat;
     private boolean clockNumericShowSeconds;
 
+    private Typeface mStopwatchTypeFace;
+
 
     private Calendar mCalendar;
     private Handler mHandler;
@@ -243,6 +246,8 @@ public class Clock extends View {
 
             this.clockNumericFormat = ClockNumericFormat.fromId(typedArray.getInt(R.styleable.Clock_numeric_format, ClockNumericFormat.hour_12.getId()));
             this.clockNumericShowSeconds = typedArray.getBoolean(R.styleable.Clock_numeric_show_seconds, false);
+
+            this.mStopwatchTypeFace = ResourcesCompat.getFont(getContext(), typedArray.getResourceId(R.styleable.Clock_stopwatch_font, R.font.proxima_nova_regular));
 
             typedArray.recycle();
 
@@ -432,8 +437,8 @@ public class Clock extends View {
         textPaint.setTextSize(mWidth * 0.35f);
         textPaint.setColor(mNumbersColor);
 
-        Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
-        textPaint.setTypeface(typeface);
+
+        textPaint.setTypeface(mStopwatchTypeFace);
 
 
         String stopwatchValue = String.format(Locale.getDefault(), "%02d", mMinutes) + ":" + String.format(Locale.getDefault(), "%02d", mSeconds);
@@ -1282,6 +1287,20 @@ public class Clock extends View {
 
     public void setClockNumericShowSeconds(boolean showSeconds) {
         this.clockNumericShowSeconds = showSeconds;
+    }
+
+    public void setStopwatchTheme(StopwatchTheme stopwatchTheme) {
+
+        try {
+            this.mNumbersColor = ContextCompat.getColor(getContext(), stopwatchTheme.getStopwatchNumbersColor());
+            this.mStopwatchTypeFace = ResourcesCompat.getFont(getContext(), stopwatchTheme.getStopwatchTypeFace());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setStopwatchTypeFace(int stopwatchTypeFace) {
+        this.mStopwatchTypeFace = ResourcesCompat.getFont(getContext(), stopwatchTypeFace);
     }
 
     /**
