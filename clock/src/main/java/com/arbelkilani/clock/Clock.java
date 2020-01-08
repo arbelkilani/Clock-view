@@ -413,6 +413,41 @@ public class Clock extends View {
         Paint paint = new Paint();
         paint.setColor(this.borderColor);
         paint.setAntiAlias(true);
+
+        if (clockBackground != null) {
+
+            Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
+            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas tCanvas = new Canvas(output);
+
+            if (showProgress) {
+                tCanvas.drawCircle(centerX, centerY, radius, paint);
+            } else {
+                switch (borderStyle) {
+                    case rectangle:
+                        tCanvas.drawRect(defaultRectF, paint);
+                        break;
+
+                    case circle:
+                        tCanvas.drawCircle(centerX, centerY, radius, paint);
+                        break;
+
+                    case rounded_rectangle:
+                        float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                        float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                        tCanvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                        break;
+                }
+            }
+
+
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            tCanvas.drawBitmap(bitmap, null, rectF, paint);
+            canvas.drawBitmap(output, null, rectF, new Paint());
+        }
+
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(size * DEFAULT_BORDER_THICKNESS);
 
@@ -453,12 +488,41 @@ public class Clock extends View {
 
     private void drawStopWatch(Canvas canvas) {
 
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
 
         if (showBorder) {
             drawCustomBorder(canvas);
         }
+
+        if (clockBackground != null) {
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+
+            Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
+            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas tCanvas = new Canvas(output);
+            switch (borderStyle) {
+                case rectangle:
+                    tCanvas.drawRect(defaultRectF, paint);
+                    break;
+
+                case circle:
+                    tCanvas.drawCircle(centerX, centerY, radius, paint);
+                    break;
+
+                case rounded_rectangle:
+                    float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                    float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                    tCanvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                    break;
+            }
+
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            tCanvas.drawBitmap(bitmap, null, rectF, paint);
+            canvas.drawBitmap(output, null, rectF, new Paint());
+        }
+
 
         TextPaint textPaint = new TextPaint();
         textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
@@ -477,6 +541,39 @@ public class Clock extends View {
 
     private void drawNumericClock(Canvas canvas) {
 
+        if (showBorder) {
+            drawCustomBorder(canvas);
+        }
+
+        if (clockBackground != null) {
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+
+            Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
+            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas tCanvas = new Canvas(output);
+            switch (borderStyle) {
+                case rectangle:
+                    tCanvas.drawRect(defaultRectF, paint);
+                    break;
+
+                case circle:
+                    tCanvas.drawCircle(centerX, centerY, radius, paint);
+                    break;
+
+                case rounded_rectangle:
+                    float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                    float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                    tCanvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                    break;
+            }
+
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            tCanvas.drawBitmap(bitmap, null, rectF, paint);
+            canvas.drawBitmap(output, null, rectF, new Paint());
+        }
 
         TextPaint textPaint = new TextPaint();
         textPaint.setAntiAlias(true);
@@ -521,10 +618,6 @@ public class Clock extends View {
             }
         }
 
-        if (showBorder) {
-            drawCustomBorder(canvas);
-        }
-
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
         canvas.translate(centerX - layout.getWidth() / 2, centerY - layout.getHeight() / 2);
         layout.draw(canvas);
@@ -560,7 +653,6 @@ public class Clock extends View {
 
         if (!showHoursValues)
             return;
-
 
         Rect rect = new Rect();
 
