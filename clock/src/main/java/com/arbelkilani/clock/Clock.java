@@ -1117,6 +1117,13 @@ public class Clock extends View {
     }
 
 
+    // Getters
+
+    public ClockType getClockType() {
+        return clockType;
+    }
+
+
     // Setters
 
     public void setClockType(ClockType clockType) {
