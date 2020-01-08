@@ -29,21 +29,26 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.arbelkilani.clock.enumeration.ClockDegreeStep;
-import com.arbelkilani.clock.enumeration.ClockDegreeType;
+import com.arbelkilani.clock.enumeration.BorderStyle;
+import com.arbelkilani.clock.enumeration.analogical.DegreesStep;
+import com.arbelkilani.clock.enumeration.analogical.DegreeType;
 import com.arbelkilani.clock.enumeration.ClockType;
-import com.arbelkilani.clock.enumeration.ClockValueDisposition;
-import com.arbelkilani.clock.enumeration.ClockValueStep;
-import com.arbelkilani.clock.enumeration.ClockValueType;
+import com.arbelkilani.clock.enumeration.analogical.ValueDisposition;
+import com.arbelkilani.clock.enumeration.analogical.ValueStep;
+import com.arbelkilani.clock.enumeration.analogical.ValueType;
 import com.arbelkilani.clock.enumeration.StopwatchState;
 import com.arbelkilani.clock.enumeration.TimeCounterState;
+import com.arbelkilani.clock.enumeration.numeric.NumericFormat;
 import com.arbelkilani.clock.global.ClockViewSaveState;
-import com.arbelkilani.clock.global.Utils;
+import com.arbelkilani.clock.global.ClockUtils;
 import com.arbelkilani.clock.listener.ClockListener;
 import com.arbelkilani.clock.listener.StopwatchListener;
 import com.arbelkilani.clock.listener.TimeCounterListener;
-import com.arbelkilani.clock.model.ClockTheme;
+import com.arbelkilani.clock.model.theme.AnalogicalTheme;
+import com.arbelkilani.clock.model.theme.NumericTheme;
 import com.arbelkilani.clock.model.StopwatchSavedItem;
+import com.arbelkilani.clock.model.theme.StopwatchTheme;
+import com.arbelkilani.clock.model.theme.TimeCounterTheme;
 import com.arbelkilani.clock.runnable.ClockRunnable;
 
 import java.util.Calendar;
@@ -55,41 +60,84 @@ public class Clock extends View {
 
     private final static String TAG = Clock.class.getSimpleName();
 
-    private static final int ANALOGICAL_CLOCK = 0;
-    private static final int NUMERIC_CLOCK = 1;
-    private static final int STOP_WATCH = 2;
-    private static final int TIME_COUNTER = 3;
-
-    private static final int FULL_ANGLE = 360;
-    private static final int REGULAR_ANGLE = 90;
-
-    private static final int CUSTOM_ALPHA = 140;
-    private static final int FULL_ALPHA = 255;
+    // Constantns
 
     private static final int DEFAULT_PRIMARY_COLOR = Color.BLACK;
     private static final int DEFAULT_SECONDARY_COLOR = Color.LTGRAY;
-
+    private static final boolean DEFAULT_STATE = false;
+    private static final float DEFAULT_BORDER_THICKNESS = 0.015f;
+    private static final int DEFAULT_BORDER_RADIUS = 20;
+    private static final int DEFAULT_MIN_RADIUS_ = 10;
+    private static final int DEFAULT_MAX_RADIUS = 90;
+    private static final int FULL_ANGLE = 360;
+    private static final int REGULAR_ANGLE = 90;
+    private static final int CUSTOM_ALPHA = 140;
+    private static final int FULL_ALPHA = 255;
     private static final float DEFAULT_MINUTES_BORDER_FACTOR = 0.4f;
     private static final float DEFAULT_SECONDS_BORDER_FACTOR = 0.9f;
-
     private static final float DEFAULT_DEGREE_STROKE_WIDTH = 0.010f;
-    private static final float DEFAULT_BORDER_THICKNESS = 0.012f;
     private static final float DEFAULT_NEEDLE_STROKE_WIDTH = 0.015f;
     private static final float NEEDLE_LENGTH_FACTOR = 0.9f;
     private static final float DEFAULT_NEEDLE_START_SPACE = 0.05f;
-
     private static final float DEFAULT_HOURS_VALUES_TEXT_SIZE = 0.08f;
-
     private static final int QUARTER_DEGREE_STEPS = 90;
-
     private static final float MINUTES_TEXT_SIZE = 0.050f;
 
-    private int mWidth, mCenterX, mCenterY, mRadius;
+    // Typed Array
+    private ClockType clockType;
 
+    private Drawable clockBackground;
+
+    private boolean showCenter;
+    private int centerInnerColor;
+    private int centerOuterColor;
+
+    private boolean showBorder;
+    private int borderColor;
+    private BorderStyle borderStyle;
+    private int borderRadiusRx = DEFAULT_BORDER_RADIUS;
+    private int borderRadiusRy = DEFAULT_BORDER_RADIUS;
+
+    private boolean showSecondsNeedle;
+    private int needleHoursColor;
+    private int needleMinutesColor;
+    private int needleSecondsColor;
+
+    private boolean showProgress;
+    private int progressColor;
+    private boolean showMinutesProgress;
+    private int minutesProgressColor;
+    private float minutesProgressFactor;
+    private boolean showSecondsProgress;
+    private int secondsProgressColor;
+    private float secondsProgressFactor;
+
+    private boolean showDegrees;
+    private int degreesColor;
+    private DegreeType degreesType;
+    private DegreesStep degreesStep;
+
+    private Typeface valuesFont;
+    private int valuesColor;
+    private boolean showHoursValues;
+    private boolean showMinutesValues;
+    private float minutesValuesFactor;
+    private ValueStep valueStep;
+    private ValueType valueType;
+    private ValueDisposition valueDisposition;
+
+    private NumericFormat numericFormat;
+
+    private boolean numericShowSeconds;
+
+    // Attributes
+    private int size, centerX, centerY, radius;
+    private float defaultThickness;
+    private RectF defaultRectF;
     private ClockRunnable mClockRunnable;
-
-    private int clockType = ANALOGICAL_CLOCK;
     private ClockListener mClockListener;
+    private Calendar mCalendar;
+    private Handler mHandler;
 
     // Stopwatch
     private long mStartTime, mMillisecondsTime, mUpdateTime, mTimeBuffer = 0L;
@@ -103,49 +151,6 @@ public class Clock extends View {
     private long mTimeCounterValue = 0;
     private long mInitialTimeCounter;
 
-    /**
-     * properties
-     */
-    private boolean showCenter;
-    private int centerInnerColor;
-    private int centerOuterColor;
-
-    private boolean showBorder;
-    private int borderColor;
-    private boolean showHoursProgress;
-    private int hoursProgressColor; //TODO change name to fit with time counter also
-    private boolean showMinutesProgress;
-    private int minutesProgressColor;
-    private float minutesProgressFactor;
-    private boolean showSecondsProgress;
-    private float secondsProgressFactor;
-    private int secondsProgressColor;
-
-    private boolean showSecondsNeedle;
-    private int secondsNeedleColor;
-    private int hoursNeedleColor;
-    private int minutesNeedleColor;
-
-    private boolean showDegrees;
-    private ClockDegreeType clockDegreesType;
-    private ClockDegreeStep clockDegreeStep;
-    private int degreesColor;
-
-    private boolean showHoursValues;
-    private int hoursValuesColor;
-    private Typeface hoursValuesTypeFace;
-    private int clockValueType;
-    private int clockValueDisposition;
-    private int clockValueStep;
-
-    private boolean showMinutesValues;
-    private float minutesValuesFactor;
-
-    private Drawable clockBackground;
-
-    private int mNumbersColor;
-    private Calendar mCalendar;
-    private Handler mHandler;
 
     public Clock(Context context) {
         super(context);
@@ -185,49 +190,68 @@ public class Clock extends View {
 
         try {
 
-            this.clockType = typedArray.getInt(R.styleable.Clock_clock_type, ANALOGICAL_CLOCK);
-
-            this.showCenter = typedArray.getBoolean(R.styleable.Clock_show_center, false);
-            this.centerInnerColor = typedArray.getColor(R.styleable.Clock_center_inner_color, Color.LTGRAY);
-            this.centerOuterColor = typedArray.getColor(R.styleable.Clock_center_outer_color, DEFAULT_PRIMARY_COLOR);
-
-            this.showBorder = typedArray.getBoolean(R.styleable.Clock_show_border, false);
-            this.borderColor = typedArray.getColor(R.styleable.Clock_border_color, DEFAULT_PRIMARY_COLOR);
-            this.showHoursProgress = typedArray.getBoolean(R.styleable.Clock_show_hours_progress, false);
-            this.hoursProgressColor = typedArray.getColor(R.styleable.Clock_hours_progress_color, DEFAULT_SECONDARY_COLOR);
-            this.showMinutesProgress = typedArray.getBoolean(R.styleable.Clock_show_minutes_progress, false);
-            this.minutesProgressColor = typedArray.getColor(R.styleable.Clock_minutes_progress_color, DEFAULT_PRIMARY_COLOR);
-            this.minutesProgressFactor = typedArray.getFloat(R.styleable.Clock_minutes_progress_factor, DEFAULT_MINUTES_BORDER_FACTOR);
-            this.showSecondsProgress = typedArray.getBoolean(R.styleable.Clock_show_seconds_progress, false);
-            this.secondsProgressFactor = typedArray.getFloat(R.styleable.Clock_seconds_progress_factor, DEFAULT_SECONDS_BORDER_FACTOR);
-            this.secondsProgressColor = typedArray.getColor(R.styleable.Clock_seconds_progress_color, DEFAULT_PRIMARY_COLOR);
-
-            this.showSecondsNeedle = typedArray.getBoolean(R.styleable.Clock_show_seconds_needle, false);
-            this.secondsNeedleColor = typedArray.getColor(R.styleable.Clock_seconds_needle_color, DEFAULT_SECONDARY_COLOR);
-            this.hoursNeedleColor = typedArray.getColor(R.styleable.Clock_hours_needle_color, DEFAULT_PRIMARY_COLOR);
-            this.minutesNeedleColor = typedArray.getColor(R.styleable.Clock_minutes_needle_color, DEFAULT_PRIMARY_COLOR);
-
-            this.showDegrees = typedArray.getBoolean(R.styleable.Clock_show_degree, false);
-            this.degreesColor = typedArray.getColor(R.styleable.Clock_degree_color, DEFAULT_PRIMARY_COLOR);
-            this.clockDegreesType = ClockDegreeType.line;
-            this.clockDegreeStep = ClockDegreeStep.full;
-
-            this.showHoursValues = typedArray.getBoolean(R.styleable.Clock_show_hours_values, false);
-            this.hoursValuesColor = typedArray.getColor(R.styleable.Clock_hours_values_color, DEFAULT_PRIMARY_COLOR);
-            int hoursTypeFace = typedArray.getResourceId(R.styleable.Clock_hours_values_font, R.font.proxima_nova_thin);
-            this.hoursValuesTypeFace = ResourcesCompat.getFont(getContext(), hoursTypeFace);
-            this.clockValueType = typedArray.getInt(R.styleable.Clock_clock_value_type, ClockValueType.none.getId());
-            this.clockValueDisposition = typedArray.getInt(R.styleable.Clock_clock_value_disposition, ClockValueDisposition.regular.getId());
-            this.clockValueStep = typedArray.getInt(R.styleable.Clock_clock_value_step, ClockValueStep.full.getId());
-
-            this.showMinutesValues = typedArray.getBoolean(R.styleable.Clock_show_minutes_value, false);
-            this.minutesValuesFactor = typedArray.getFloat(R.styleable.Clock_minutes_values_factor, DEFAULT_MINUTES_BORDER_FACTOR);
+            this.clockType = ClockType.fromId(typedArray.getInt(R.styleable.Clock_clock_type, ClockType.analogical.getId()));
 
             this.clockBackground = typedArray.getDrawable(R.styleable.Clock_clock_background);
 
-            this.mNumbersColor = typedArray.getColor(R.styleable.Clock_numbers_color, Color.BLACK);
+            this.showCenter = typedArray.getBoolean(R.styleable.Clock_show_center, DEFAULT_STATE);
+            this.centerInnerColor = typedArray.getColor(R.styleable.Clock_center_inner_color, DEFAULT_PRIMARY_COLOR);
+            this.centerOuterColor = typedArray.getColor(R.styleable.Clock_center_outer_color, DEFAULT_SECONDARY_COLOR);
+
+            this.showBorder = typedArray.getBoolean(R.styleable.Clock_show_border, DEFAULT_STATE);
+            this.borderColor = typedArray.getColor(R.styleable.Clock_border_color, DEFAULT_PRIMARY_COLOR);
+            this.borderStyle = BorderStyle.fromId(typedArray.getInt(R.styleable.Clock_border_style, BorderStyle.rectangle.getId()));
+            int typedBorderRadiusX = typedArray.getInt(R.styleable.Clock_border_radius_rx, DEFAULT_BORDER_RADIUS);
+
+            if (typedBorderRadiusX > DEFAULT_MIN_RADIUS_ && typedBorderRadiusX < DEFAULT_MAX_RADIUS) {
+                this.borderRadiusRx = typedBorderRadiusX;
+            } else {
+                throw new IllegalArgumentException("border_radius_rx should be in ]" + DEFAULT_MIN_RADIUS_ + "," + DEFAULT_MAX_RADIUS + "[");
+            }
+
+            int typedBorderRadiusY = typedArray.getInt(R.styleable.Clock_border_radius_ry, DEFAULT_BORDER_RADIUS);
+            if (typedBorderRadiusY > DEFAULT_MIN_RADIUS_ && typedBorderRadiusY < DEFAULT_MAX_RADIUS) {
+                this.borderRadiusRy = typedBorderRadiusY;
+            } else {
+                throw new IllegalArgumentException("border_radius_ry should be in ]" + DEFAULT_MIN_RADIUS_ + "," + DEFAULT_MAX_RADIUS + "[");
+            }
+
+            this.showSecondsNeedle = typedArray.getBoolean(R.styleable.Clock_show_seconds_needle, DEFAULT_STATE);
+            this.needleHoursColor = typedArray.getColor(R.styleable.Clock_hours_needle_color, DEFAULT_PRIMARY_COLOR);
+            this.needleMinutesColor = typedArray.getColor(R.styleable.Clock_minutes_needle_color, DEFAULT_PRIMARY_COLOR);
+            this.needleSecondsColor = typedArray.getColor(R.styleable.Clock_seconds_needle_color, DEFAULT_SECONDARY_COLOR);
+
+            this.showProgress = typedArray.getBoolean(R.styleable.Clock_show_progress, DEFAULT_STATE);
+            this.progressColor = typedArray.getColor(R.styleable.Clock_progress_color, DEFAULT_SECONDARY_COLOR);
+
+            this.showMinutesProgress = typedArray.getBoolean(R.styleable.Clock_show_minutes_progress, DEFAULT_STATE);
+            this.minutesProgressColor = typedArray.getColor(R.styleable.Clock_minutes_progress_color, DEFAULT_PRIMARY_COLOR);
+            this.minutesProgressFactor = typedArray.getFloat(R.styleable.Clock_minutes_progress_factor, DEFAULT_MINUTES_BORDER_FACTOR);
+
+            this.showSecondsProgress = typedArray.getBoolean(R.styleable.Clock_show_seconds_progress, DEFAULT_STATE);
+            this.secondsProgressFactor = typedArray.getFloat(R.styleable.Clock_seconds_progress_factor, DEFAULT_SECONDS_BORDER_FACTOR);
+            this.secondsProgressColor = typedArray.getColor(R.styleable.Clock_seconds_progress_color, DEFAULT_PRIMARY_COLOR);
+
+            this.showDegrees = typedArray.getBoolean(R.styleable.Clock_show_degree, DEFAULT_STATE);
+            this.degreesColor = typedArray.getColor(R.styleable.Clock_degree_color, DEFAULT_PRIMARY_COLOR);
+            this.degreesType = DegreeType.fromId(typedArray.getInt(R.styleable.Clock_degree_type, DegreeType.line.getId()));
+            this.degreesStep = DegreesStep.fromId(typedArray.getInt(R.styleable.Clock_degree_step, DegreesStep.full.getId()));
+
+            this.valuesFont = ResourcesCompat.getFont(getContext(), typedArray.getResourceId(R.styleable.Clock_values_font, R.font.proxima_nova_thin));
+            this.valuesColor = typedArray.getColor(R.styleable.Clock_values_color, DEFAULT_PRIMARY_COLOR);
+            this.showHoursValues = typedArray.getBoolean(R.styleable.Clock_show_hours_values, DEFAULT_STATE);
+            this.showMinutesValues = typedArray.getBoolean(R.styleable.Clock_show_minutes_value, DEFAULT_STATE);
+            this.minutesValuesFactor = typedArray.getFloat(R.styleable.Clock_minutes_values_factor, DEFAULT_MINUTES_BORDER_FACTOR);
+            this.valueStep = ValueStep.fromId(typedArray.getInt(R.styleable.Clock_clock_value_step, ValueStep.full.getId()));
+            this.valueType = ValueType.fromId(typedArray.getInt(R.styleable.Clock_clock_value_type, ValueType.none.getId()));
+            this.valueDisposition = ValueDisposition.fromId(typedArray.getInt(R.styleable.Clock_clock_value_disposition, ValueDisposition.regular.getId()));
+
+            this.numericFormat = NumericFormat.fromId(typedArray.getInt(R.styleable.Clock_numeric_format, NumericFormat.hour_12.getId()));
+
+            this.numericShowSeconds = typedArray.getBoolean(R.styleable.Clock_numeric_show_seconds, DEFAULT_STATE);
 
             typedArray.recycle();
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -237,11 +261,7 @@ public class Clock extends View {
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
 
-        mWidth = getHeight() > getWidth() ? getWidth() : getHeight();
-
-        mCenterX = mWidth / 2;
-        mCenterY = mWidth / 2;
-        mRadius = (mWidth / 2) - ((int) (mWidth * DEFAULT_BORDER_THICKNESS) / 2);
+        onPreDraw(canvas);
 
         mCalendar = Calendar.getInstance();
 
@@ -251,28 +271,54 @@ public class Clock extends View {
 
         switch (clockType) {
 
-            case ANALOGICAL_CLOCK:
-                drawBackground(canvas);
-                drawBorder(canvas);
-                drawHoursValues(canvas);
-                drawMinutesValues(canvas);
-                drawDegrees(canvas);
-                drawNeedles(canvas);
-                drawCenter(canvas);
+            case analogical:
+                drawAnalogicalClock(canvas);
                 break;
 
-            case NUMERIC_CLOCK:
-                drawNumbers(canvas);
+            case numeric:
+                drawNumericClock(canvas);
                 break;
 
-            case STOP_WATCH:
+            case stopwatch:
                 drawStopWatch(canvas);
                 break;
 
-            case TIME_COUNTER:
+            case time_counter:
                 drawTimeCounter(canvas);
                 break;
         }
+    }
+
+    private void drawAnalogicalClock(Canvas canvas) {
+        drawBackground(canvas);
+        drawBorder(canvas);
+        drawHoursValues(canvas);
+        drawMinutesValues(canvas);
+        drawDegrees(canvas);
+        drawNeedles(canvas);
+        drawCenter(canvas);
+    }
+
+    private void onPreDraw(Canvas canvas) {
+
+        this.size = getHeight() > getWidth() ? getWidth() : getHeight();
+        this.centerX = size / 2;
+        this.centerY = size / 2;
+        this.radius = (int) ((this.size * (1 - DEFAULT_BORDER_THICKNESS)) / 2);
+
+        this.defaultThickness = this.size * DEFAULT_BORDER_THICKNESS;
+        this.defaultRectF = new RectF(
+                defaultThickness, defaultThickness,
+                this.size - defaultThickness, this.size - defaultThickness);
+
+        Paint paint = new Paint();
+        paint.setColor(Color.BLUE);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setAntiAlias(true);
+        paint.setStrokeWidth(defaultThickness);
+
+        //canvas.drawRect(new Rect(0, 0, getWidth(), getHeight()), paint);
+        //canvas.drawCircle(centerX, centerY, radius, paint);
     }
 
     private void drawMinutesValues(Canvas canvas) {
@@ -286,22 +332,22 @@ public class Clock extends View {
         TextPaint textPaint = new TextPaint();
         textPaint.setColor(minutesProgressColor);
         textPaint.setTypeface(typeface);
-        textPaint.setTextSize(mWidth * MINUTES_TEXT_SIZE);
+        textPaint.setTextSize(size * MINUTES_TEXT_SIZE);
 
-        int rText = (int) (mCenterX - ((1 - minutesValuesFactor - (2 * DEFAULT_BORDER_THICKNESS) - MINUTES_TEXT_SIZE) * mRadius));
+        int rText = (int) (centerX - ((1 - minutesValuesFactor - (2 * DEFAULT_BORDER_THICKNESS) - MINUTES_TEXT_SIZE) * radius));
 
         for (int i = 0; i < FULL_ANGLE; i = i + QUARTER_DEGREE_STEPS) {
 
             int value = i / 6;
             String formatted;
-            switch (clockValueType) {
+            switch (valueType) {
 
-                case 1:
-                    formatted = Utils.toArabic(value);
+                case arabic:
+                    formatted = ClockUtils.toArabic(value);
                     break;
 
-                case 0:
-                    formatted = Utils.toRoman(value);
+                case roman:
+                    formatted = ClockUtils.toRoman(value);
                     break;
 
                 default:
@@ -309,8 +355,8 @@ public class Clock extends View {
                     break;
             }
 
-            int textX = (int) (mCenterX + rText * Math.cos(Math.toRadians(REGULAR_ANGLE - i)));
-            int textY = (int) (mCenterX - rText * Math.sin(Math.toRadians(REGULAR_ANGLE - i)));
+            int textX = (int) (centerX + rText * Math.cos(Math.toRadians(REGULAR_ANGLE - i)));
+            int textY = (int) (centerX - rText * Math.sin(Math.toRadians(REGULAR_ANGLE - i)));
             textPaint.getTextBounds(formatted, 0, formatted.length(), rect);
             canvas.drawText(formatted, textX - rect.width() / formatted.length(), textY + rect.height() / formatted.length(), textPaint);
         }
@@ -321,16 +367,17 @@ public class Clock extends View {
         if (!showDegrees)
             return;
 
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(mWidth * DEFAULT_DEGREE_STROKE_WIDTH);
+        paint.setStrokeWidth(size * DEFAULT_DEGREE_STROKE_WIDTH);
         paint.setColor(degreesColor);
 
-        int rPadded = mCenterX - (int) (mWidth * (DEFAULT_BORDER_THICKNESS + 0.01f));
-        int rEnd = mCenterX - (int) (mWidth * (DEFAULT_BORDER_THICKNESS + 0.05f));
+        int rPadded = centerX - (int) (size * (DEFAULT_BORDER_THICKNESS + 0.03f));
+        int rEnd = centerX - (int) (size * (DEFAULT_BORDER_THICKNESS + 0.06f));
 
-        for (int i = 0; i < FULL_ANGLE; i = i + clockDegreeStep.getId()) {
+        for (int i = 0; i < FULL_ANGLE; i = i + degreesStep.getId()) {
 
             if ((i % REGULAR_ANGLE) != 0 && (i % 15) != 0)
                 paint.setAlpha(CUSTOM_ALPHA);
@@ -338,20 +385,20 @@ public class Clock extends View {
                 paint.setAlpha(FULL_ALPHA);
             }
 
-            int startX = (int) (mCenterX + rPadded * Math.cos(Math.toRadians(i)));
-            int startY = (int) (mCenterX - rPadded * Math.sin(Math.toRadians(i)));
+            int startX = (int) (centerX + rPadded * Math.cos(Math.toRadians(i)));
+            int startY = (int) (centerX - rPadded * Math.sin(Math.toRadians(i)));
 
-            int stopX = (int) (mCenterX + rEnd * Math.cos(Math.toRadians(i)));
-            int stopY = (int) (mCenterX - rEnd * Math.sin(Math.toRadians(i)));
+            int stopX = (int) (centerX + rEnd * Math.cos(Math.toRadians(i)));
+            int stopY = (int) (centerX - rEnd * Math.sin(Math.toRadians(i)));
 
-            switch (clockDegreesType) {
+            switch (degreesType) {
 
                 case circle:
-                    canvas.drawCircle(stopX, stopY, mWidth * DEFAULT_DEGREE_STROKE_WIDTH, paint);
+                    canvas.drawCircle(stopX, stopY, size * DEFAULT_DEGREE_STROKE_WIDTH, paint);
                     break;
 
                 case square:
-                    canvas.drawRect(startX, startY, startX + (mWidth * DEFAULT_DEGREE_STROKE_WIDTH), startY + (mWidth * DEFAULT_DEGREE_STROKE_WIDTH), paint);
+                    canvas.drawRect(startX, startY, startX + (size * DEFAULT_DEGREE_STROKE_WIDTH), startY + (size * DEFAULT_DEGREE_STROKE_WIDTH), paint);
                     break;
 
                 default:
@@ -364,35 +411,68 @@ public class Clock extends View {
     private void drawTimeCounter(Canvas canvas) {
 
         Paint paint = new Paint();
-        paint.setColor(borderColor);
-        paint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(this.borderColor);
         paint.setAntiAlias(true);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(mWidth * DEFAULT_BORDER_THICKNESS);
 
-        canvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
+        if (clockBackground != null) {
+
+            Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
+            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas tCanvas = new Canvas(output);
+
+            if (showProgress) {
+                tCanvas.drawCircle(centerX, centerY, radius, paint);
+            } else {
+                switch (borderStyle) {
+                    case rectangle:
+                        tCanvas.drawRect(defaultRectF, paint);
+                        break;
+
+                    case circle:
+                        tCanvas.drawCircle(centerX, centerY, radius, paint);
+                        break;
+
+                    case rounded_rectangle:
+                        float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                        float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                        tCanvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                        break;
+                }
+            }
+
+
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            tCanvas.drawBitmap(bitmap, null, rectF, paint);
+            canvas.drawBitmap(output, null, rectF, new Paint());
+        }
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(size * DEFAULT_BORDER_THICKNESS);
+
+        if (showProgress)
+            canvas.drawCircle(centerX, centerY, radius, paint);
 
         TextPaint textPaint = new TextPaint();
-        textPaint.setTextSize(mWidth * 0.25f);
+        textPaint.setTextSize(size * 0.25f);
         textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         textPaint.setAntiAlias(true);
-        textPaint.setColor(mNumbersColor);
-
-        Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
-        textPaint.setTypeface(typeface);
+        textPaint.setColor(this.valuesColor);
+        textPaint.setTypeface(this.valuesFont);
 
         Paint progressArcPaint = new Paint();
-        paint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        paint.setAntiAlias(true);
-        progressArcPaint.setColor(hoursProgressColor);
+        progressArcPaint.setAntiAlias(true);
+        progressArcPaint.setColor(this.progressColor);
         progressArcPaint.setStyle(Paint.Style.STROKE);
-        progressArcPaint.setStrokeWidth(mWidth * DEFAULT_BORDER_THICKNESS);
+        progressArcPaint.setStrokeWidth(size * DEFAULT_BORDER_THICKNESS);
         progressArcPaint.setStrokeCap(Paint.Cap.ROUND);
 
-        RectF rectF = new RectF(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
+        RectF rectF = new RectF(this.centerX - this.radius, this.centerY - this.radius, this.centerX + this.radius, this.centerY + this.radius);
 
         long timeCounterSweepAngle = (long) ((float) mTimeCounterValue / mInitialTimeCounter * FULL_ANGLE);
-        canvas.drawArc(rectF, -REGULAR_ANGLE, FULL_ANGLE - (FULL_ANGLE - timeCounterSweepAngle), false, progressArcPaint);
+        if (showProgress)
+            canvas.drawArc(rectF, -REGULAR_ANGLE, FULL_ANGLE - (FULL_ANGLE - timeCounterSweepAngle), false, progressArcPaint);
 
         String value = String.format(Locale.getDefault(), "%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(mTimeCounterValue),
@@ -401,60 +481,172 @@ public class Clock extends View {
 
         SpannableStringBuilder spannableString = new SpannableStringBuilder(value);
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
-        canvas.translate(mCenterX - layout.getWidth() / 2, mCenterY - layout.getHeight() / 2);
+        canvas.translate(this.centerX - layout.getWidth() / 2, this.centerY - layout.getHeight() / 2);
 
         layout.draw(canvas);
     }
 
     private void drawStopWatch(Canvas canvas) {
 
+
+        if (showBorder) {
+            drawCustomBorder(canvas);
+        }
+
+        if (clockBackground != null) {
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+
+            Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
+            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas tCanvas = new Canvas(output);
+            switch (borderStyle) {
+                case rectangle:
+                    tCanvas.drawRect(defaultRectF, paint);
+                    break;
+
+                case circle:
+                    tCanvas.drawCircle(centerX, centerY, radius, paint);
+                    break;
+
+                case rounded_rectangle:
+                    float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                    float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                    tCanvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                    break;
+            }
+
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            tCanvas.drawBitmap(bitmap, null, rectF, paint);
+            canvas.drawBitmap(output, null, rectF, new Paint());
+        }
+
+
         TextPaint textPaint = new TextPaint();
         textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         textPaint.setAntiAlias(true);
-        textPaint.setTextSize(mWidth * 0.35f);
-        textPaint.setColor(mNumbersColor);
-
-        Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
-        textPaint.setTypeface(typeface);
-
+        textPaint.setTextSize(size * 0.25f);
+        textPaint.setColor(this.valuesColor);
+        textPaint.setTypeface(this.valuesFont);
 
         String stopwatchValue = String.format(Locale.getDefault(), "%02d", mMinutes) + ":" + String.format(Locale.getDefault(), "%02d", mSeconds);
-
         SpannableStringBuilder spannableString = new SpannableStringBuilder(stopwatchValue);
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
-        canvas.translate(mCenterX - layout.getWidth() / 2, mCenterY - layout.getHeight() / 2);
+        canvas.translate(centerX - layout.getWidth() / 2, centerY - layout.getHeight() / 2);
 
         layout.draw(canvas);
     }
 
-    private void drawNumbers(Canvas canvas) {
+    private void drawNumericClock(Canvas canvas) {
+
+        if (showBorder) {
+            drawCustomBorder(canvas);
+        }
+
+        if (clockBackground != null) {
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+
+            Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
+            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas tCanvas = new Canvas(output);
+            switch (borderStyle) {
+                case rectangle:
+                    tCanvas.drawRect(defaultRectF, paint);
+                    break;
+
+                case circle:
+                    tCanvas.drawCircle(centerX, centerY, radius, paint);
+                    break;
+
+                case rounded_rectangle:
+                    float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                    float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                    tCanvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                    break;
+            }
+
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            tCanvas.drawBitmap(bitmap, null, rectF, paint);
+            canvas.drawBitmap(output, null, rectF, new Paint());
+        }
 
         TextPaint textPaint = new TextPaint();
-        textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         textPaint.setAntiAlias(true);
-        textPaint.setTextSize(mWidth * 0.3f);
-        textPaint.setColor(mNumbersColor);
+        textPaint.setTypeface(valuesFont);
 
-        Typeface typeface = ResourcesCompat.getFont(getContext(), R.font.proxima_nova_thin);
-        textPaint.setTypeface(typeface);
+        textPaint.setTextSize(size * 0.22f);
+        textPaint.setColor(this.valuesColor);
 
-        Calendar calendar = mCalendar;
+        SpannableStringBuilder spannableString = new SpannableStringBuilder();
 
-        int hour = calendar.get(Calendar.HOUR);
-        int minute = calendar.get(Calendar.MINUTE);
-        int amPm = calendar.get(Calendar.AM_PM);
+        int amPm = mCalendar.get(Calendar.AM_PM);
+        String minute = String.format(Locale.getDefault(), "%02d", mCalendar.get(Calendar.MINUTE));
+        String second = String.format(Locale.getDefault(), "%02d", mCalendar.get(Calendar.SECOND));
 
-        String time = String.format("%s:%s%s",
-                String.format(Locale.getDefault(), "%02d", hour),
-                String.format(Locale.getDefault(), "%02d", minute),
-                amPm == Calendar.AM ? "AM" : "PM");
-
-        SpannableStringBuilder spannableString = new SpannableStringBuilder(time);
-        spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+        if (this.numericShowSeconds) {
+            if (this.numericFormat == NumericFormat.hour_12) {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", mCalendar.get(Calendar.HOUR)));
+                spannableString.append(":");
+                spannableString.append(minute);
+                spannableString.append(".");
+                spannableString.append(second);
+                spannableString.append(amPm == Calendar.AM ? "AM" : "PM");
+                spannableString.setSpan(new RelativeSizeSpan(0.3f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+            } else {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", mCalendar.get(Calendar.HOUR_OF_DAY)));
+                spannableString.append(":");
+                spannableString.append(minute);
+                spannableString.append(".");
+                spannableString.append(second);
+            }
+        } else {
+            if (this.numericFormat == NumericFormat.hour_12) {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", mCalendar.get(Calendar.HOUR)));
+                spannableString.append(":");
+                spannableString.append(minute);
+                spannableString.append(amPm == Calendar.AM ? "AM" : "PM");
+                spannableString.setSpan(new RelativeSizeSpan(0.4f), spannableString.toString().length() - 2, spannableString.toString().length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // se superscript percent
+            } else {
+                spannableString.append(String.format(Locale.getDefault(), "%02d", mCalendar.get(Calendar.HOUR_OF_DAY)));
+                spannableString.append(":");
+                spannableString.append(minute);
+            }
+        }
 
         StaticLayout layout = new StaticLayout(spannableString, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1, 1, true);
-        canvas.translate(mCenterX - layout.getWidth() / 2, mCenterY - layout.getHeight() / 2);
+        canvas.translate(centerX - layout.getWidth() / 2, centerY - layout.getHeight() / 2);
         layout.draw(canvas);
+
+    }
+
+    private void drawCustomBorder(Canvas canvas) {
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(this.borderColor);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(defaultThickness);
+
+        switch (borderStyle) {
+            case rectangle:
+                canvas.drawRect(defaultRectF, paint);
+                break;
+
+            case circle:
+                canvas.drawCircle(centerX, centerY, radius, paint);
+                break;
+
+            case rounded_rectangle:
+                float rx = radius - (radius * (100 - borderRadiusRx)) / 100;
+                float ry = radius - (radius * (100 - borderRadiusRy)) / 100;
+                canvas.drawRoundRect(defaultRectF, rx, ry, paint);
+                break;
+        }
     }
 
     private void drawHoursValues(Canvas canvas) {
@@ -462,34 +654,33 @@ public class Clock extends View {
         if (!showHoursValues)
             return;
 
-
         Rect rect = new Rect();
 
         TextPaint textPaint = new TextPaint();
         textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         textPaint.setAntiAlias(true);
-        textPaint.setColor(hoursValuesColor);
-        textPaint.setTypeface(hoursValuesTypeFace);
-        textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
+        textPaint.setColor(this.valuesColor);
+        textPaint.setTypeface(this.valuesFont);
+        textPaint.setTextSize(size * DEFAULT_HOURS_VALUES_TEXT_SIZE);
 
         float degreeSpace = 0f;
         if (showDegrees)
             degreeSpace = DEFAULT_DEGREE_STROKE_WIDTH + 0.06f;
 
-        int rText = (int) (mCenterX - (mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE) - (mWidth * degreeSpace));
+        int rText = (int) (centerX - (size * DEFAULT_HOURS_VALUES_TEXT_SIZE) - (size * degreeSpace));
 
-        for (int i = FULL_ANGLE; i > 0; i = i - clockValueStep) {
+        for (int i = FULL_ANGLE; i > 0; i = i - valueStep.getId()) {
 
             int value = i / 30;
             String formatted;
-            switch (clockValueType) {
+            switch (valueType) {
 
-                case 0:
-                    formatted = Utils.toRoman(value);
+                case roman:
+                    formatted = ClockUtils.toRoman(value);
                     break;
 
-                case 1:
-                    formatted = Utils.toArabic(value);
+                case arabic:
+                    formatted = ClockUtils.toArabic(value);
                     break;
 
                 default:
@@ -497,22 +688,22 @@ public class Clock extends View {
                     break;
             }
 
-            if (clockValueDisposition == 0) {
+            if (valueDisposition.getId() == 0) {
                 if ((i % REGULAR_ANGLE) == 0) {
-                    textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
+                    textPaint.setTextSize(size * DEFAULT_HOURS_VALUES_TEXT_SIZE);
                     textPaint.setAlpha(FULL_ALPHA);
                 } else {
-                    textPaint.setTextSize(mWidth * (DEFAULT_HOURS_VALUES_TEXT_SIZE - 0.03f));
+                    textPaint.setTextSize(size * (DEFAULT_HOURS_VALUES_TEXT_SIZE - 0.03f));
                     textPaint.setAlpha(CUSTOM_ALPHA);
                 }
             } else {
-                textPaint.setTextSize(mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE);
+                textPaint.setTextSize(size * DEFAULT_HOURS_VALUES_TEXT_SIZE);
                 textPaint.setAlpha(FULL_ALPHA);
             }
 
 
-            int textX = (int) (mCenterX + rText * Math.cos(Math.toRadians(REGULAR_ANGLE - i)));
-            int textY = (int) (mCenterX - rText * Math.sin(Math.toRadians(REGULAR_ANGLE - i)));
+            int textX = (int) (centerX + rText * Math.cos(Math.toRadians(REGULAR_ANGLE - i)));
+            int textY = (int) (centerX - rText * Math.sin(Math.toRadians(REGULAR_ANGLE - i)));
             textPaint.getTextBounds(formatted, 0, formatted.length(), rect);
             canvas.drawText(formatted, textX - rect.width() / formatted.length(), textY + rect.height() / formatted.length(), textPaint);
         }
@@ -523,7 +714,7 @@ public class Clock extends View {
 
         final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(mWidth * DEFAULT_NEEDLE_STROKE_WIDTH);
+        paint.setStrokeWidth(size * DEFAULT_NEEDLE_STROKE_WIDTH);
 
         float needleStartSpace = DEFAULT_NEEDLE_START_SPACE;
 
@@ -532,93 +723,99 @@ public class Clock extends View {
         float degreesSpace = 0f;
 
         if (showBorder)
-            borderThickness = mWidth * DEFAULT_BORDER_THICKNESS;
+            borderThickness = size * DEFAULT_BORDER_THICKNESS;
 
         if (showHoursValues)
-            hoursTextSize = mWidth * DEFAULT_HOURS_VALUES_TEXT_SIZE;
+            hoursTextSize = size * DEFAULT_HOURS_VALUES_TEXT_SIZE;
 
         if (showDegrees)
-            degreesSpace = mWidth * (DEFAULT_BORDER_THICKNESS + 0.06f); // // TODO: 11/7/18
+            degreesSpace = size * (DEFAULT_BORDER_THICKNESS + 0.06f); // // TODO: 11/7/18
 
-        //float needleMaxLength = (mRadius * NEEDLE_LENGTH_FACTOR) - 2 * (borderThickness + hoursTextSize);
-        float needleMaxLength = (mRadius * NEEDLE_LENGTH_FACTOR) - (degreesSpace + borderThickness + hoursTextSize);
+        float needleMaxLength = (radius * NEEDLE_LENGTH_FACTOR) - 2 * (degreesSpace + borderThickness + hoursTextSize);
+        //float needleMaxLength = (radius * NEEDLE_LENGTH_FACTOR) - (degreesSpace + borderThickness + hoursTextSize);
 
         // draw seconds needle
         float secondsDegree = mCalendar.get(Calendar.SECOND) * 6;
 
-        float startSecondsX = (float) (mCenterX + (mRadius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + secondsDegree)));
-        float stopSecondsX = (float) (mCenterX + needleMaxLength * Math.cos(Math.toRadians(-REGULAR_ANGLE + secondsDegree)));
-        float startSecondsY = ((float) (mCenterY + (mRadius * needleStartSpace) * Math.sin(Math.toRadians(-REGULAR_ANGLE + secondsDegree))));
-        float stopSecondsY = ((float) (mCenterY + needleMaxLength * Math.sin(Math.toRadians(-REGULAR_ANGLE + secondsDegree))));
+        float startSecondsX = (float) (centerX + (radius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + secondsDegree)));
+        float stopSecondsX = (float) (centerX + needleMaxLength * Math.cos(Math.toRadians(-REGULAR_ANGLE + secondsDegree)));
+        float startSecondsY = ((float) (centerY + (radius * needleStartSpace) * Math.sin(Math.toRadians(-REGULAR_ANGLE + secondsDegree))));
+        float stopSecondsY = ((float) (centerY + needleMaxLength * Math.sin(Math.toRadians(-REGULAR_ANGLE + secondsDegree))));
 
         // draw hours needle
         float hoursDegree = (mCalendar.get(Calendar.HOUR) + (mCalendar.get(Calendar.MINUTE) / 60f)) * 30; // 30 = 360 / 12
 
-        float startHoursX = (float) (mCenterX + (mRadius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + hoursDegree)));
-        float stopHoursX = (float) (mCenterX + (needleMaxLength * 0.6f) * Math.cos(Math.toRadians(-REGULAR_ANGLE + hoursDegree)));
-        float startHoursY = ((float) (mCenterY + (mRadius * needleStartSpace) * Math.sin(Math.toRadians(-REGULAR_ANGLE + hoursDegree))));
-        float stopHoursY = ((float) (mCenterY + (needleMaxLength * 0.6f) * Math.sin(Math.toRadians(-REGULAR_ANGLE + hoursDegree))));
+        float startHoursX = (float) (centerX + (radius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + hoursDegree)));
+        float stopHoursX = (float) (centerX + (needleMaxLength * 0.6f) * Math.cos(Math.toRadians(-REGULAR_ANGLE + hoursDegree)));
+        float startHoursY = ((float) (centerY + (radius * needleStartSpace) * Math.sin(Math.toRadians(-REGULAR_ANGLE + hoursDegree))));
+        float stopHoursY = ((float) (centerY + (needleMaxLength * 0.6f) * Math.sin(Math.toRadians(-REGULAR_ANGLE + hoursDegree))));
 
         // draw minutes needle
         float minutesDegree = (mCalendar.get(Calendar.MINUTE) + (mCalendar.get(Calendar.SECOND) / 60f)) * 6;
 
-        float startMinutesX = (float) (mCenterX + (mRadius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + minutesDegree)));
-        float stopMinutesX = (float) (mCenterX + (needleMaxLength * 0.8f) * Math.cos(Math.toRadians(-REGULAR_ANGLE + minutesDegree)));
-        float startMinutesY = ((float) (mCenterY + ((mRadius - (mWidth * DEFAULT_BORDER_THICKNESS)) * needleStartSpace) * Math.sin(Math.toRadians(-REGULAR_ANGLE + minutesDegree))));
-        float stopMinutesY = ((float) (mCenterY + (needleMaxLength * 0.8f) * Math.sin(Math.toRadians(-REGULAR_ANGLE + minutesDegree))));
+        float startMinutesX = (float) (centerX + (radius * needleStartSpace) * Math.cos(Math.toRadians(-REGULAR_ANGLE + minutesDegree)));
+        float stopMinutesX = (float) (centerX + (needleMaxLength * 0.8f) * Math.cos(Math.toRadians(-REGULAR_ANGLE + minutesDegree)));
+        float startMinutesY = ((float) (centerY + ((radius - (size * DEFAULT_BORDER_THICKNESS)) * needleStartSpace) * Math.sin(Math.toRadians(-REGULAR_ANGLE + minutesDegree))));
+        float stopMinutesY = ((float) (centerY + (needleMaxLength * 0.8f) * Math.sin(Math.toRadians(-REGULAR_ANGLE + minutesDegree))));
 
         drawProgressBorder(canvas, hoursDegree, minutesDegree, secondsDegree);
 
         // hours needle
-        paint.setColor(hoursNeedleColor);
+        paint.setColor(needleHoursColor);
         canvas.drawLine(startHoursX, startHoursY, stopHoursX, stopHoursY, paint);
 
         // minutes needle
-        paint.setColor(minutesNeedleColor);
+        paint.setColor(needleMinutesColor);
         canvas.drawLine(startMinutesX, startMinutesY, stopMinutesX, stopMinutesY, paint);
 
         // seconds needle
-        paint.setStrokeWidth(mWidth * 0.008f);
-        paint.setColor(secondsNeedleColor);
+        paint.setStrokeWidth(size * 0.008f);
+        paint.setColor(needleSecondsColor);
         if (showSecondsNeedle) {
             canvas.drawLine(startSecondsX, startSecondsY, stopSecondsX, stopSecondsY, paint);
         }
 
     }
 
-    private void drawProgressBorder(Canvas canvas, float hoursDegree, float minutesDegree, float secondsDegree) {
+    private void drawProgressBorder(final Canvas canvas, final float hoursDegree, float minutesDegree, float secondsDegree) {
 
-        float minuteProgressSpace = (mRadius - DEFAULT_BORDER_THICKNESS) * minutesProgressFactor;
-        RectF minutesRectF = new RectF(mCenterX - minuteProgressSpace, mCenterY - minuteProgressSpace, mCenterX + minuteProgressSpace, mCenterY + minuteProgressSpace);
+        float minuteProgressSpace = (radius - DEFAULT_BORDER_THICKNESS) * minutesProgressFactor;
+        RectF minutesRectF = new RectF(centerX - minuteProgressSpace, centerY - minuteProgressSpace, centerX + minuteProgressSpace, centerY + minuteProgressSpace);
 
-        RectF hoursRectF = new RectF(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
+        final RectF hoursRectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 
-        float secondsProgressSpace = (mRadius - DEFAULT_BORDER_THICKNESS) * secondsProgressFactor;
-        RectF secondsRectF = new RectF(mCenterX - secondsProgressSpace, mCenterY - secondsProgressSpace, mCenterX + secondsProgressSpace, mCenterX + secondsProgressSpace);
+        float secondsProgressSpace = (radius - DEFAULT_BORDER_THICKNESS) * secondsProgressFactor;
+        final RectF secondsRectF = new RectF(centerX - secondsProgressSpace, centerY - secondsProgressSpace, centerX + secondsProgressSpace, centerX + secondsProgressSpace);
 
-        Paint progressArcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        progressArcPaint.setColor(borderColor);
+        final Paint progressArcPaint = new Paint();
+        progressArcPaint.setAntiAlias(true);
         progressArcPaint.setStyle(Paint.Style.STROKE);
-        progressArcPaint.setStrokeWidth(mWidth * DEFAULT_BORDER_THICKNESS);
+        progressArcPaint.setStrokeWidth(size * DEFAULT_BORDER_THICKNESS);
         progressArcPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        progressArcPaint.setColor(borderColor);
 
         if (showSecondsProgress) {
             progressArcPaint.setColor(secondsProgressColor);
-            canvas.drawArc(secondsRectF, -REGULAR_ANGLE, secondsDegree, false, progressArcPaint);
+            if (!showProgress)
+                canvas.drawArc(hoursRectF, -REGULAR_ANGLE, secondsDegree, false, progressArcPaint);
+            else
+                canvas.drawArc(secondsRectF, -REGULAR_ANGLE, secondsDegree, false, progressArcPaint);
         }
 
         if (showMinutesProgress) {
             progressArcPaint.setColor(borderColor);
-            canvas.drawCircle(mCenterX, mCenterY, minutesRectF.width() / 2, progressArcPaint);
+            canvas.drawCircle(centerX, centerY, minutesRectF.width() / 2, progressArcPaint);
 
             progressArcPaint.setColor(minutesProgressColor);
             canvas.drawArc(minutesRectF, -REGULAR_ANGLE, minutesDegree, false, progressArcPaint);
         }
 
-        if (showHoursProgress) {
-            progressArcPaint.setColor(hoursProgressColor);
+        if (showProgress) {
+            progressArcPaint.setColor(progressColor);
             canvas.drawArc(hoursRectF, -REGULAR_ANGLE, hoursDegree, false, progressArcPaint);
         }
+
 
     }
 
@@ -629,10 +826,10 @@ public class Clock extends View {
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setAntiAlias(true);
-        paint.setColor(borderColor);
+        paint.setColor(this.borderColor);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(mWidth * DEFAULT_BORDER_THICKNESS);
-        canvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
+        paint.setStrokeWidth(size * DEFAULT_BORDER_THICKNESS);
+        canvas.drawCircle(centerX, centerY, radius, paint);
     }
 
     private void drawBackground(Canvas canvas) {
@@ -641,12 +838,12 @@ public class Clock extends View {
             return;
 
         Bitmap bitmap = ((BitmapDrawable) clockBackground).getBitmap();
-        RectF rectF = new RectF(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
+        RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
 
-        Bitmap output = Bitmap.createBitmap(mWidth, mWidth, Bitmap.Config.ARGB_8888);
+        Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas tCanvas = new Canvas(output);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        tCanvas.drawCircle(mCenterX, mCenterY, mRadius, paint);
+        tCanvas.drawCircle(centerX, centerY, radius, paint);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         tCanvas.drawBitmap(bitmap, null, rectF, paint);
 
@@ -664,12 +861,12 @@ public class Clock extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(centerInnerColor);
-        canvas.drawCircle(mCenterX, mCenterY, mWidth * 0.015f, paint); // center
+        canvas.drawCircle(centerX, centerY, size * 0.015f, paint); // center
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(centerOuterColor);
-        paint.setStrokeWidth(mWidth * 0.008f);
-        canvas.drawCircle(mCenterX, mCenterY, mWidth * 0.02f, paint); // border
+        paint.setStrokeWidth(size * 0.008f);
+        canvas.drawCircle(centerX, centerY, size * 0.02f, paint); // border
 
     }
 
@@ -682,50 +879,6 @@ public class Clock extends View {
 
     public void setClockListener(ClockListener clockListener) {
         mClockListener = clockListener;
-    }
-
-    public void setStyle(ClockType clockType) {
-        switch (clockType) {
-            case numeric:
-                this.clockType = NUMERIC_CLOCK;
-                mClockRunnable.run();
-                break;
-
-            case analogical:
-                this.clockType = ANALOGICAL_CLOCK;
-                mClockRunnable.run();
-                break;
-
-            case stopwatch:
-                this.clockType = STOP_WATCH;
-                break;
-
-            case time_counter:
-                this.clockType = TIME_COUNTER;
-                break;
-        }
-
-        invalidate();
-    }
-
-    public ClockType getType() {
-        switch (clockType) {
-
-            case ANALOGICAL_CLOCK:
-                return ClockType.analogical;
-
-            case NUMERIC_CLOCK:
-                return ClockType.numeric;
-
-            case STOP_WATCH:
-                return ClockType.stopwatch;
-
-            case TIME_COUNTER:
-                return ClockType.time_counter;
-
-            default:
-                return null;
-        }
     }
 
     public void setStopwatchListener(StopwatchListener stopwatchListener) {
@@ -954,33 +1107,37 @@ public class Clock extends View {
         invalidate();
     }
 
-    // setters
-    public void setShowCenter(boolean showCenter) {
+    /**
+     * Ref : https://garygregory.wordpress.com/2013/06/18/what-are-the-java-timezone-ids/
+     *
+     * @param timezoneCountry
+     */
+    public void setTimezone(String timezoneCountry) {
+        mCalendar = Calendar.getInstance(TimeZone.getTimeZone(timezoneCountry));
+    }
+
+
+    // Setters
+
+    public void setClockType(ClockType clockType) {
+        this.clockType = clockType;
+        invalidate();
+    }
+
+    public void setClockBackground(int clockBackground) {
+        this.clockBackground = ResourcesCompat.getDrawable(getContext().getResources(), clockBackground, null);
+    }
+
+    public void showCenter(boolean showCenter) {
         this.showCenter = showCenter;
     }
 
     public void setCenterInnerColor(int centerInnerColor) {
-        try {
-            this.centerInnerColor = ContextCompat.getColor(getContext(), centerInnerColor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.centerInnerColor = ResourcesCompat.getColor(getContext().getResources(), centerInnerColor, null);
     }
 
     public void setCenterOuterColor(int centerOuterColor) {
-        try {
-            this.centerOuterColor = ContextCompat.getColor(getContext(), centerOuterColor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setShowHoursValues(boolean showHoursValues) {
-        this.showHoursValues = showHoursValues;
-    }
-
-    public void setClockValueStep(ClockValueStep clockValueStep) {
-        this.clockValueStep = clockValueStep.getId();
+        this.centerOuterColor = ResourcesCompat.getColor(getContext().getResources(), centerOuterColor, null);
     }
 
     public void setShowBorder(boolean showBorder) {
@@ -988,23 +1145,40 @@ public class Clock extends View {
     }
 
     public void setBorderColor(int borderColor) {
-        try {
-            this.borderColor = ContextCompat.getColor(getContext(), borderColor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.borderColor = ResourcesCompat.getColor(getContext().getResources(), borderColor, null);
     }
 
-    public void setShowHoursProgress(boolean showHoursProgress) {
-        this.showHoursProgress = showHoursProgress;
+    public void setBorderStyle(BorderStyle borderStyle) {
+        this.borderStyle = borderStyle;
     }
 
-    public void setHoursProgressColor(int hoursProgressColor) {
-        try {
-            this.hoursProgressColor = ContextCompat.getColor(getContext(), hoursProgressColor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void setBorderRadius(int borderRadiusRx, int borderRadiusRy) {
+        this.borderRadiusRx = borderRadiusRx;
+        this.borderRadiusRy = borderRadiusRy;
+    }
+
+    public void setShowSecondsNeedle(boolean showSecondsNeedle) {
+        this.showSecondsNeedle = showSecondsNeedle;
+    }
+
+    public void setHoursNeedleColor(int needleHoursColor) {
+        this.needleHoursColor = ResourcesCompat.getColor(getContext().getResources(), needleHoursColor, null);
+    }
+
+    public void setMinutesNeedleColor(int needleMinutesColor) {
+        this.needleMinutesColor = ResourcesCompat.getColor(getContext().getResources(), needleMinutesColor, null);
+    }
+
+    public void setSecondsNeedleColor(int needleSecondsColor) {
+        this.needleSecondsColor = ResourcesCompat.getColor(getContext().getResources(), needleSecondsColor, null);
+    }
+
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
+    }
+
+    public void setProgressColor(int progressColor) {
+        this.centerOuterColor = ResourcesCompat.getColor(getContext().getResources(), progressColor, null);
     }
 
     public void setShowMinutesProgress(boolean showMinutesProgress) {
@@ -1039,64 +1213,32 @@ public class Clock extends View {
         }
     }
 
-    public void setShowSecondsNeedle(boolean showSecondsNeedle) {
-        this.showSecondsNeedle = showSecondsNeedle;
-    }
-
-    public void setSecondsNeedleColor(int secondsNeedleColor) {
-        try {
-            this.secondsNeedleColor = ContextCompat.getColor(getContext(), secondsNeedleColor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setHoursNeedleColor(int hoursNeedleColor) {
-        this.hoursNeedleColor = hoursNeedleColor;
-    }
-
-    public void setMinutesNeedleColor(int minutesNeedleColor) {
-        this.minutesNeedleColor = minutesNeedleColor;
-    }
-
-    public void setHoursValuesColor(int hoursValuesColor) {
-        this.hoursValuesColor = hoursValuesColor;
-    }
-
-    public void setHoursValuesTypeFace(Typeface hoursValuesTypeFace) {
-        this.hoursValuesTypeFace = hoursValuesTypeFace;
-    }
-
-    public void setClockType(int clockType) {
-        this.clockType = clockType;
-    }
-
     public void setShowDegrees(boolean showDegrees) {
         this.showDegrees = showDegrees;
-    }
-
-    public void setClockDegreesType(ClockDegreeType clockDegreesType) {
-        this.clockDegreesType = clockDegreesType;
-    }
-
-    public void setClockDegreeStep(ClockDegreeStep clockDegreeStep) {
-        this.clockDegreeStep = clockDegreeStep;
     }
 
     public void setDegreesColor(int degreesColor) {
         this.degreesColor = degreesColor;
     }
 
-    public void setClockValueType(ClockValueType clockValueType) {
-        this.clockValueType = clockValueType.getId();
+    public void setDegreesType(DegreeType clockDegreesType) {
+        this.degreesType = clockDegreesType;
     }
 
-    public void setClockValueDisposition(ClockValueDisposition clockValueDisposition) {
-        this.clockValueDisposition = clockValueDisposition.getId();
+    public void setDegreesStep(DegreesStep degreesStep) {
+        this.degreesStep = degreesStep;
     }
 
-    public void setClockValueStep(int clockValueStep) {
-        this.clockValueStep = clockValueStep;
+    public void setValuesFont(int valuesFont) {
+        this.valuesFont = ResourcesCompat.getFont(getContext(), valuesFont);
+    }
+
+    public void setValuesColor(int valuesColor) {
+        this.valuesColor = ResourcesCompat.getColor(getContext().getResources(), valuesColor, null);
+    }
+
+    public void setShowHoursValues(boolean showHoursValues) {
+        this.showHoursValues = showHoursValues;
     }
 
     public void setShowMinutesValues(boolean showMinutesValues) {
@@ -1107,121 +1249,113 @@ public class Clock extends View {
         this.minutesValuesFactor = minutesValuesFactor;
     }
 
-    public void setClockBackground(int clockBackground) {
-        try {
-            this.clockBackground = ContextCompat.getDrawable(getContext(), clockBackground);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void setValueStep(ValueStep valueStep) {
+        this.valueStep = valueStep;
     }
 
-    public void setTheme(ClockTheme clockTheme) {
-
-        this.showCenter = clockTheme.isShowCenter();
-
-        this.showBorder = clockTheme.isShowBorder();
-        this.showHoursProgress = clockTheme.isShowHoursProgress();
-        this.showMinutesProgress = clockTheme.isShowMinutesProgress();
-        this.minutesProgressFactor = clockTheme.getMinutesProgressFactor();
-        this.showSecondsProgress = clockTheme.isShowSecondsProgress();
-        this.secondsProgressFactor = clockTheme.getSecondsProgressFactor();
-
-        this.showSecondsNeedle = clockTheme.isShowSecondsNeedle();
-
-        this.showDegrees = clockTheme.isShowDegrees();
-        this.clockDegreesType = clockTheme.getClockDegreeType();
-
-        this.showHoursValues = clockTheme.isShowHoursValues();
-        if (clockTheme.getClockValueType() != null) {
-            this.clockValueType = clockTheme.getClockValueType().getId();
-        }
-        if (clockTheme.getClockValueDisposition() != null) {
-            this.clockValueDisposition = clockTheme.getClockValueDisposition().getId();
-        }
-        if (clockTheme.getClockValueStep() != null) {
-            this.clockValueStep = clockTheme.getClockValueStep().getId();
-        }
-        this.showMinutesValues = clockTheme.isShowMinutesValues();
-        this.minutesValuesFactor = clockTheme.getMinutesValuesFactor();
-
-        this.centerInnerColor = clockTheme.getCenterInnerColor();
-        this.centerOuterColor = clockTheme.getCenterOuterColor();
-
-        try {
-            this.clockBackground = ContextCompat.getDrawable(getContext(), clockTheme.getClockBackground());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.borderColor = ContextCompat.getColor(getContext(), clockTheme.getBorderColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.hoursProgressColor = ContextCompat.getColor(getContext(), clockTheme.getHoursProgressColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.minutesProgressColor = ContextCompat.getColor(getContext(), clockTheme.getMinutesProgressColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.secondsProgressColor = ContextCompat.getColor(getContext(), clockTheme.getSecondsProgressColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.secondsNeedleColor = ContextCompat.getColor(getContext(), clockTheme.getSecondsNeedleColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.hoursNeedleColor = ContextCompat.getColor(getContext(), clockTheme.getHoursNeedleColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.minutesNeedleColor = ContextCompat.getColor(getContext(), clockTheme.getMinutesNeedleColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.degreesColor = ContextCompat.getColor(getContext(), clockTheme.getDegreesColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            this.hoursValuesColor = ContextCompat.getColor(getContext(), clockTheme.getHoursValuesColor());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            hoursValuesTypeFace = ResourcesCompat.getFont(getContext(), clockTheme.getHoursValuesFont());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        invalidate();
+    public void setValueType(ValueType valueType) {
+        this.valueType = valueType;
     }
 
-    /**
-     * Ref : https://garygregory.wordpress.com/2013/06/18/what-are-the-java-timezone-ids/
-     *
-     * @param timezoneCountry
-     */
-    public void setTimezone(String timezoneCountry) {
-        mCalendar = Calendar.getInstance(TimeZone.getTimeZone(timezoneCountry));
+    public void setValueDisposition(ValueDisposition valueDisposition) {
+        this.valueDisposition = valueDisposition;
     }
+
+    public void setNumericFormat(NumericFormat numericFormat) {
+        this.numericFormat = numericFormat;
+    }
+
+    public void setNumericShowSeconds(boolean numericShowSeconds) {
+        this.numericShowSeconds = numericShowSeconds;
+    }
+
+    // Themes
+    public void setAnalogicalTheme(AnalogicalTheme analogicalTheme) {
+
+        this.clockType = analogicalTheme.getClockType();
+
+        this.clockBackground = ResourcesCompat.getDrawable(getContext().getResources(), analogicalTheme.getClockBackground(), null);
+
+        this.showCenter = analogicalTheme.isShowCenter();
+        this.centerInnerColor = analogicalTheme.getCenterInnerColor();
+        this.centerOuterColor = analogicalTheme.getCenterOuterColor();
+
+        this.showBorder = analogicalTheme.isShowBorder();
+        this.borderColor = analogicalTheme.getBorderColor();
+
+        this.showSecondsNeedle = analogicalTheme.isShowSecondsNeedle();
+        this.needleHoursColor = analogicalTheme.getNeedleHoursColor();
+        this.needleMinutesColor = analogicalTheme.getNeedleMinutesColor();
+        this.needleSecondsColor = analogicalTheme.getNeedleSecondsColor();
+
+        this.showProgress = analogicalTheme.isShowProgress();
+        this.progressColor = analogicalTheme.getProgressColor();
+        this.showMinutesProgress = analogicalTheme.isShowMinutesProgress();
+        this.minutesProgressColor = analogicalTheme.getMinutesProgressColor();
+        this.minutesProgressFactor = analogicalTheme.getMinutesProgressFactor();
+        this.showSecondsProgress = analogicalTheme.isShowSecondsProgress();
+        this.secondsProgressColor = analogicalTheme.getSecondsProgressColor();
+        this.secondsProgressFactor = analogicalTheme.getSecondsProgressFactor();
+
+        this.showDegrees = analogicalTheme.isShowDegrees();
+        this.degreesColor = ResourcesCompat.getColor(getContext().getResources(), analogicalTheme.getDegreesColor(), null);
+        this.degreesType = analogicalTheme.getDegreesType();
+        this.degreesStep = analogicalTheme.getDegreesStep();
+
+        this.valuesFont = ResourcesCompat.getFont(getContext(), analogicalTheme.getValuesFont());
+        this.valuesColor = ResourcesCompat.getColor(getContext().getResources(), analogicalTheme.getValuesColor(), null);
+        this.showHoursValues = analogicalTheme.isShowHoursValues();
+        this.showMinutesValues = analogicalTheme.isShowMinutesValues();
+        this.minutesValuesFactor = analogicalTheme.getMinutesValuesFactor();
+        this.valueStep = analogicalTheme.getValueStep();
+        this.valueType = analogicalTheme.getValueType();
+        this.valueDisposition = analogicalTheme.getValueDisposition();
+    }
+
+    public void setNumericTheme(NumericTheme numericTheme) {
+
+        this.clockType = numericTheme.getClockType();
+
+        this.clockBackground = ResourcesCompat.getDrawable(getContext().getResources(), numericTheme.getClockBackground(), null);
+
+        this.valuesFont = ResourcesCompat.getFont(getContext(), numericTheme.getValuesFont());
+        this.valuesColor = ResourcesCompat.getColor(getContext().getResources(), numericTheme.getValuesColor(), null);
+
+        this.showBorder = numericTheme.isShowBorder();
+        this.borderColor = numericTheme.getBorderColor();
+        this.borderRadiusRx = numericTheme.getBorderRadiusRx();
+        this.borderRadiusRy = numericTheme.getBorderRadiusRy();
+
+        this.numericFormat = numericTheme.getNumericFormat();
+    }
+
+    public void setStopwatchTheme(StopwatchTheme stopwatchTheme) {
+
+        this.clockType = stopwatchTheme.getClockType();
+
+        this.clockBackground = ResourcesCompat.getDrawable(getContext().getResources(), stopwatchTheme.getClockBackground(), null);
+
+        this.valuesFont = ResourcesCompat.getFont(getContext(), stopwatchTheme.getValuesFont());
+        this.valuesColor = ResourcesCompat.getColor(getContext().getResources(), stopwatchTheme.getValuesColor(), null);
+
+        this.showBorder = stopwatchTheme.isShowBorder();
+        this.borderColor = stopwatchTheme.getBorderColor();
+        this.borderRadiusRx = stopwatchTheme.getBorderRadiusRx();
+        this.borderRadiusRy = stopwatchTheme.getBorderRadiusRy();
+    }
+
+    public void setTimeCounterTheme(TimeCounterTheme timeCounterTheme) {
+
+        this.clockType = timeCounterTheme.getClockType();
+
+        this.clockBackground = ResourcesCompat.getDrawable(getContext().getResources(), timeCounterTheme.getClockBackground(), null);
+
+        this.valuesFont = ResourcesCompat.getFont(getContext(), timeCounterTheme.getValuesFont());
+        this.valuesColor = ResourcesCompat.getColor(getContext().getResources(), timeCounterTheme.getValuesColor(), null);
+
+        this.showProgress = timeCounterTheme.isShowProgress();
+        this.progressColor = timeCounterTheme.getProgressColor();
+        this.borderColor = timeCounterTheme.getBorderColor();
+    }
+
 }

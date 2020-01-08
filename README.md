@@ -1,3 +1,2 @@
 # Clock View
-
-For more details check the master branch.
+For more details check the master branch or the Wiki section.
