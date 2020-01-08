@@ -1,4 +1,4 @@
-# Clock View
+# Clock View 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cd4176b8e8734648b9e08d4357470c74)](https://app.codacy.com/app/arbelkilani/Clock-view?utm_source=github.com&utm_medium=referral&utm_content=arbelkilani/Clock-view&utm_campaign=Badge_Grade_Dashboard)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/vlad1m1r990/Lemniscate/blob/master/LICENSE)
 [![minSdkVersion](https://img.shields.io/badge/minSdkVersion-21-orange.svg)]()
