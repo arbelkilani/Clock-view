@@ -4,7 +4,6 @@ package edu.arbelkilani.eduarbelkilaniclock;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,10 +15,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.arbelkilani.clock.Clock;
-import com.arbelkilani.clock.enumeration.ClockType;
 import com.arbelkilani.clock.enumeration.StopwatchState;
 import com.arbelkilani.clock.listener.StopwatchListener;
 import com.arbelkilani.clock.model.StopwatchSavedItem;
+import com.arbelkilani.clock.model.theme.StopwatchTheme;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +54,8 @@ public class StopwatchFragment extends Fragment implements View.OnClickListener,
 
         stopwatch = view.findViewById(R.id.stopwatch);
         stopwatch.setStopwatchListener(this);
+
+
 
         savedItemList = new ArrayList<>();
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, true);

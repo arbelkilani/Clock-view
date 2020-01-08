@@ -3,18 +3,11 @@ package edu.arbelkilani.eduarbelkilaniclock;
 
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.arbelkilani.clock.Clock;
-import com.arbelkilani.clock.enumeration.ClockType;
-import com.arbelkilani.clock.enumeration.numeric.ClockNumericFormat;
-import com.arbelkilani.clock.model.ClockTheme;
-import com.arbelkilani.clock.model.NumericTheme;
 
 
 /**

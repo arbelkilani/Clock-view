@@ -11,28 +11,38 @@
             <enum name="time_counter" value="3" />
         </attr>
 
+        <attr name="clock_background" format="reference" />
+
+        <attr name="values_font" format="reference" />
+        <attr name="values_color" format="color" />
+
         <attr name="show_center" format="boolean" />
         <attr name="center_inner_color" format="color" />
         <attr name="center_outer_color" format="color" />
 
         <attr name="show_border" format="boolean" />
         <attr name="border_color" format="color" />
-
-        <attr name="show_hours_progress" format="boolean" />
-        <attr name="hours_progress_color" format="color" />
-
-        <attr name="show_minutes_progress" format="boolean" />
-        <attr name="minutes_progress_color" format="color" />
-        <attr name="minutes_progress_factor" format="float" />
-
-        <attr name="show_seconds_progress" format="boolean" />
-        <attr name="seconds_progress_color" format="color" />
-        <attr name="seconds_progress_factor" format="float" />
+        <attr name="border_style" format="enum">
+            <enum name="rectangle" value="0" />
+            <enum name="circle" value="1" />
+            <enum name="rounded_rectangle" value="2" />
+        </attr>
+        <attr name="border_radius_rx" format="integer" />
+        <attr name="border_radius_ry" format="integer" />
 
         <attr name="show_seconds_needle" format="boolean" />
         <attr name="seconds_needle_color" format="color" />
         <attr name="hours_needle_color" format="color" />
         <attr name="minutes_needle_color" format="color" />
+
+        <attr name="show_progress" format="boolean" />
+        <attr name="progress_color" format="color" />
+        <attr name="show_minutes_progress" format="boolean" />
+        <attr name="minutes_progress_color" format="color" />
+        <attr name="minutes_progress_factor" format="float" />
+        <attr name="show_seconds_progress" format="boolean" />
+        <attr name="seconds_progress_color" format="color" />
+        <attr name="seconds_progress_factor" format="float" />
 
         <attr name="show_degree" format="boolean" />
         <attr name="degree_color" format="color" />
@@ -48,10 +58,12 @@
         </attr>
 
         <attr name="show_hours_values" format="boolean" />
-        <attr name="hours_values_color" format="color" />
-        <attr name="hours_values_font" format="reference" />
         <attr name="show_minutes_value" format="boolean" />
         <attr name="minutes_values_factor" format="float" />
+        <attr name="clock_value_step" format="enum">
+            <enum name="quarter" value="90" />
+            <enum name="full" value="30" />
+        </attr>
         <attr name="clock_value_type" format="enum">
             <enum name="none" value="-1" />
             <enum name="roman" value="0" />
@@ -61,21 +73,13 @@
             <enum name="regular" value="-1" />
             <enum name="alternate" value="0" />
         </attr>
-        <attr name="clock_value_step" format="enum">
-            <enum name="quarter" value="90" />
-            <enum name="full" value="30" />
-        </attr>
 
-        <!-- background -->
-        <attr name="clock_background" format="reference" />
-
-        <attr name="numbers_color" format="color" />
         <attr name="numeric_format" format="enum">
-            <enum name="hour_12" value="0"/>
-            <enum name="hour_24" value="1"/>
+            <enum name="hour_12" value="0" />
+            <enum name="hour_24" value="1" />
         </attr>
-        <attr name="numeric_show_seconds" format="boolean"/>
-        <attr name="stopwatch_font" format="reference"/>
+
+        <attr name="numeric_show_seconds" format="boolean" />
 
     </declare-styleable>
 

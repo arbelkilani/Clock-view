@@ -2,7 +2,7 @@ package com.arbelkilani.clock.global;
 
 import java.util.TreeMap;
 
-public class Utils {
+public class ClockUtils {
 
     private final static TreeMap<Integer, String> romanMap = new TreeMap<Integer, String>();
     private final static TreeMap<Integer, String> arabicMap = new TreeMap<Integer, String>();

@@ -1,10 +1,10 @@
 package com.arbelkilani.clock.enumeration.analogical;
 
-public enum ClockDegreeType {
+public enum DegreeType {
 
     line(0), circle(1), square(2);
 
-    ClockDegreeType(int i) {
+    DegreeType(int i) {
         this.id = i;
     }
 
@@ -14,8 +14,8 @@ public enum ClockDegreeType {
         return id;
     }
 
-    public static ClockDegreeType fromId(int id) {
-        for (ClockDegreeType clockDegreeType : values()) {
+    public static DegreeType fromId(int id) {
+        for (DegreeType clockDegreeType : values()) {
             if (clockDegreeType.id == id) return clockDegreeType;
         }
         throw new IllegalArgumentException();

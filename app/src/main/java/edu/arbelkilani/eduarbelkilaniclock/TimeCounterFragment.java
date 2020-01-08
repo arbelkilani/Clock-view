@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 import com.arbelkilani.clock.Clock;
+import com.arbelkilani.clock.enumeration.ClockType;
 import com.arbelkilani.clock.enumeration.TimeCounterState;
 import com.arbelkilani.clock.listener.TimeCounterListener;
 
@@ -46,8 +47,11 @@ public class TimeCounterFragment extends Fragment implements View.OnClickListene
     }
 
     private void initViews(View view) {
+
         timeCounter = view.findViewById(R.id.timeCounter);
         timeCounter.setTimeCounterListener(this);
+
+        timeCounter.setClockType(ClockType.time_counter);
 
         hoursSpinner = view.findViewById(R.id.spinner_hours);
         minutesSpinner = view.findViewById(R.id.spinner_minutes);

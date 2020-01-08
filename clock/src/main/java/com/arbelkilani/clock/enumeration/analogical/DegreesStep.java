@@ -1,10 +1,10 @@
 package com.arbelkilani.clock.enumeration.analogical;
 
-public enum ClockDegreeStep {
+public enum DegreesStep {
 
     quarter(90), full(6), twelve(30);
 
-    ClockDegreeStep(int i) {
+    DegreesStep(int i) {
         this.id = i;
     }
 
@@ -14,9 +14,9 @@ public enum ClockDegreeStep {
         return id;
     }
 
-    public static ClockDegreeStep fromId(int id) {
-        for (ClockDegreeStep clockDegreeStep : values()) {
-            if (clockDegreeStep.id == id) return clockDegreeStep;
+    public static DegreesStep fromId(int id) {
+        for (DegreesStep degreesStep : values()) {
+            if (degreesStep.id == id) return degreesStep;
         }
         throw new IllegalArgumentException();
     }
