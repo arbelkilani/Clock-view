@@ -198,7 +198,6 @@ public class Clock extends View {
             this.centerInnerColor = typedArray.getColor(R.styleable.Clock_center_inner_color, DEFAULT_PRIMARY_COLOR);
             this.centerOuterColor = typedArray.getColor(R.styleable.Clock_center_outer_color, DEFAULT_SECONDARY_COLOR);
 
-
             this.showBorder = typedArray.getBoolean(R.styleable.Clock_show_border, DEFAULT_STATE);
             this.borderColor = typedArray.getColor(R.styleable.Clock_border_color, DEFAULT_PRIMARY_COLOR);
             this.borderStyle = BorderStyle.fromId(typedArray.getInt(R.styleable.Clock_border_style, BorderStyle.rectangle.getId()));
@@ -217,12 +216,10 @@ public class Clock extends View {
                 throw new IllegalArgumentException("border_radius_ry should be in ]" + DEFAULT_MIN_RADIUS_ + "," + DEFAULT_MAX_RADIUS + "[");
             }
 
-
             this.showSecondsNeedle = typedArray.getBoolean(R.styleable.Clock_show_seconds_needle, DEFAULT_STATE);
             this.needleHoursColor = typedArray.getColor(R.styleable.Clock_hours_needle_color, DEFAULT_PRIMARY_COLOR);
             this.needleMinutesColor = typedArray.getColor(R.styleable.Clock_minutes_needle_color, DEFAULT_PRIMARY_COLOR);
             this.needleSecondsColor = typedArray.getColor(R.styleable.Clock_seconds_needle_color, DEFAULT_SECONDARY_COLOR);
-
 
             this.showProgress = typedArray.getBoolean(R.styleable.Clock_show_progress, DEFAULT_STATE);
             this.progressColor = typedArray.getColor(R.styleable.Clock_progress_color, DEFAULT_SECONDARY_COLOR);
@@ -1198,6 +1195,15 @@ public class Clock extends View {
         this.needleHoursColor = analogicalTheme.getNeedleHoursColor();
         this.needleMinutesColor = analogicalTheme.getNeedleMinutesColor();
         this.needleSecondsColor = analogicalTheme.getNeedleSecondsColor();
+
+        this.showProgress = analogicalTheme.isShowProgress();
+        this.progressColor = analogicalTheme.getProgressColor();
+        this.showMinutesProgress = analogicalTheme.isShowMinutesProgress();
+        this.minutesProgressColor = analogicalTheme.getMinutesProgressColor();
+        this.minutesProgressFactor = analogicalTheme.getMinutesProgressFactor();
+        this.showSecondsProgress = analogicalTheme.isShowSecondsProgress();
+        this.secondsProgressColor = analogicalTheme.getSecondsProgressColor();
+        this.secondsProgressFactor = analogicalTheme.getSecondsProgressFactor();
 
         this.showDegrees = analogicalTheme.isShowDegrees();
         this.degreesColor = ResourcesCompat.getColor(getContext().getResources(), analogicalTheme.getDegreesColor(), null);

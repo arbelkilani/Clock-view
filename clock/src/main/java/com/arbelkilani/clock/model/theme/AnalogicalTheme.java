@@ -1,10 +1,8 @@
 package com.arbelkilani.clock.model.theme;
 
-import android.graphics.drawable.Drawable;
-
 import com.arbelkilani.clock.enumeration.ClockType;
-import com.arbelkilani.clock.enumeration.analogical.DegreesStep;
 import com.arbelkilani.clock.enumeration.analogical.DegreeType;
+import com.arbelkilani.clock.enumeration.analogical.DegreesStep;
 import com.arbelkilani.clock.enumeration.analogical.ValueDisposition;
 import com.arbelkilani.clock.enumeration.analogical.ValueStep;
 import com.arbelkilani.clock.enumeration.analogical.ValueType;
@@ -29,6 +27,12 @@ public class AnalogicalTheme {
 
     private boolean showProgress;
     private int progressColor;
+    private boolean showMinutesProgress;
+    private int minutesProgressColor;
+    private float minutesProgressFactor;
+    private boolean showSecondsProgress;
+    private int secondsProgressColor;
+    private float secondsProgressFactor;
 
     private boolean showDegrees;
     private int degreesColor;
@@ -94,6 +98,30 @@ public class AnalogicalTheme {
 
     public int getProgressColor() {
         return progressColor;
+    }
+
+    public boolean isShowMinutesProgress() {
+        return showMinutesProgress;
+    }
+
+    public int getMinutesProgressColor() {
+        return minutesProgressColor;
+    }
+
+    public float getMinutesProgressFactor() {
+        return minutesProgressFactor;
+    }
+
+    public boolean isShowSecondsProgress() {
+        return showSecondsProgress;
+    }
+
+    public int getSecondsProgressColor() {
+        return secondsProgressColor;
+    }
+
+    public float getSecondsProgressFactor() {
+        return secondsProgressFactor;
     }
 
     public boolean isShowDegrees() {
@@ -164,6 +192,12 @@ public class AnalogicalTheme {
 
         this.showProgress = analogicalThemeBuilder.showProgress;
         this.progressColor = analogicalThemeBuilder.progressColor;
+        this.showMinutesProgress = analogicalThemeBuilder.showMinutesProgress;
+        this.minutesProgressColor = analogicalThemeBuilder.minutesProgressColor;
+        this.minutesProgressFactor = analogicalThemeBuilder.minutesProgressFactor;
+        this.showSecondsProgress = analogicalThemeBuilder.showSecondsProgress;
+        this.secondsProgressColor = analogicalThemeBuilder.secondsProgressColor;
+        this.secondsProgressFactor = analogicalThemeBuilder.secondsProgressFactor;
 
         this.showDegrees = analogicalThemeBuilder.showDegrees;
         this.degreesColor = analogicalThemeBuilder.degreesColor;
@@ -200,6 +234,12 @@ public class AnalogicalTheme {
 
         private boolean showProgress;
         private int progressColor;
+        private boolean showMinutesProgress;
+        private int minutesProgressColor;
+        private float minutesProgressFactor;
+        private boolean showSecondsProgress;
+        private int secondsProgressColor;
+        private float secondsProgressFactor;
 
         private boolean showDegrees;
         private int degreesColor;
@@ -277,6 +317,36 @@ public class AnalogicalTheme {
 
         public AnalogicalThemeBuilder setProgressColor(int progressColor) {
             this.progressColor = progressColor;
+            return this;
+        }
+
+        public AnalogicalThemeBuilder setShowMinutesProgress(boolean showMinutesProgress) {
+            this.showMinutesProgress = showMinutesProgress;
+            return this;
+        }
+
+        public AnalogicalThemeBuilder setMinutesProgressColor(int minutesProgressColor) {
+            this.minutesProgressColor = minutesProgressColor;
+            return this;
+        }
+
+        public AnalogicalThemeBuilder setMinutesProgressFactor(float minutesProgressFactor) {
+            this.minutesProgressFactor = minutesProgressFactor;
+            return this;
+        }
+
+        public AnalogicalThemeBuilder setShowSecondsProgress(boolean showSecondsProgress) {
+            this.showSecondsProgress = showSecondsProgress;
+            return this;
+        }
+
+        public AnalogicalThemeBuilder setSecondsProgressColor(int secondsProgressColor) {
+            this.secondsProgressColor = secondsProgressColor;
+            return this;
+        }
+
+        public AnalogicalThemeBuilder setSecondsProgressFactor(float secondsProgressFactor) {
+            this.secondsProgressFactor = secondsProgressFactor;
             return this;
         }
 
